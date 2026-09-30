@@ -44,6 +44,7 @@
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             flex-shrink: 0;
+            z-index: 1000;
         }
         .btn-sos {
             background-color: #fee2e2;
@@ -176,7 +177,7 @@
             margin-top: 6px;
         }
 
-        /* Modal */
+        /* Modal แจ้งเหตุ */
         .modal {
             display: none;
             position: fixed;
@@ -202,6 +203,7 @@
             width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.85rem;
         }
 
+        /* Responsive สำหรับมือถือ */
         @media (max-width: 768px) {
             .main-layout { flex-direction: column-reverse; }
             .sidebar { width: 100%; height: 35vh; }
@@ -212,7 +214,7 @@
 <body>
 
     <header>
-        <span>🌊 ระดับน้ำ จ.สมุทรปราการ</span>
+        <span>🌊 น้ำท่วม จ.สมุทรปราการ</span>
         <button class="btn-sos" onclick="alert('📞 สายด่วนกู้ภัยสมุทรปราการ: 1669')">📞 โทร 1669</button>
     </header>
 
@@ -327,6 +329,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
+        // 🚨 กำหนดเส้นขอบเขตจังหวัดสมุทรปราการ (ปรับเป็นสีแดงตามคำขอ)
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520],
             [13.670, 100.600],
@@ -338,11 +341,11 @@
         ];
 
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#1e40af',
-            weight: 3,
-            dashArray: '5, 5',
-            fillColor: '#3b82f6',
-            fillOpacity: 0.05
+            color: '#dc2626',       // 🔴 เส้นขอบสีแดง
+            weight: 3,              // ความหนาเส้น
+            dashArray: '5, 5',      // เส้นประ
+            fillColor: '#ef4444',   // สีพื้นแดงอ่อน
+            fillOpacity: 0.08       // ความโปร่งแสง
         }).addTo(map);
 
         map.fitBounds(provinceBoundary.getBounds());
@@ -376,12 +379,10 @@
                     fillOpacity: 0.85
                 }).addTo(map);
 
-                // แก้ไขใส่ Backtick ครอบข้อความ Popup ให้ถูกต้อง
-                circle.bindPopup(`<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time}`);
+                circle.bindPopup(<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time});
                 markers.push(circle);
 
-                // แก้ไขใส่ Backtick ครอบ Tag รูปภาพให้ถูกต้อง
-                let imgTag = item.image ? `<img src="${item.image}" class="feed-img">` : '';
+                let imgTag = item.image ? <img src="${item.image}" class="feed-img"> : '';
 
                 feedContainer.innerHTML += `
                     <div class="feed-item" style="border-left-color: ${colors[item.level]};">
@@ -462,13 +463,12 @@
 
             samutPrakanPoints.unshift(newEntry);
             
-            // ล้างค่าตัวกรองเพื่อให้อัปเดตข้อมูลใหม่แสดงผลทันที
             document.getElementById('filterDistrict').value = "";
             document.getElementById('filterSubdistrict').value = "";
             
             renderMapAndFeed(samutPrakanPoints);
             closeReportModal();
-            alert('✅ ส่งรายงานสำเร็จ! ข้อมูลถูกอัปเดตลงแผนที่และ Feed ทันที');
+            alert('✅ ส่งรายงานสำเร็จ! หมุดสีแดงขอบเขตและข้อมูลถูกอัปเดตทันที');
         }
 
         function getGPSLocation() {
