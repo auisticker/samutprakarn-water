@@ -94,7 +94,7 @@
             height: 100%;
         }
         .sidebar {
-            width: 300px;
+            width: 350px;
             background: white;
             border-left: 1px solid #e2e8f0;
             padding: 15px;
@@ -109,21 +109,51 @@
             border-bottom: 2px solid #edf2f7;
             padding-bottom: 8px;
         }
-        .emergency-btn {
-            background-color: #fff5f5;
-            border: 1px solid #feb2b2;
-            color: var(--danger);
+        .report-form {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .report-form input, .report-form select, .report-form textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+        .report-form button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .report-form button:hover {
+            background-color: #2b6cb0;
+        }
+        .feed-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid var(--secondary);
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 10px;
             font-size: 0.85rem;
-            text-align: left;
         }
-        .emergency-btn b { display: block; font-size: 0.95rem; }
+        .feed-card b { color: var(--primary); }
         
         @media (max-width: 768px) {
             .main-container { flex-direction: column-reverse; }
-            .sidebar { width: 100%; height: 180px; }
+            .sidebar { width: 100%; height: 320px; }
         }
     </style>
 </head>
@@ -136,7 +166,7 @@
 
     <div class="emergency-ticker">
         <span>🚨 แจ้งเตือนด่วน:</span>
-        <span>เฝ้าระวังน้ำทะเลหนุนสูงบริเวณริมแม่น้ำเจ้าพระยาและคลองสาขา ช่วงค่ำวันนี้</span>
+        <span>เฝ้าระวังน้ำทะเลหนุนสูงบริเวณริมแม่น้ำเจ้าพระยาและคลองสาขา</span>
     </div>
 
     <div class="control-panel">
@@ -152,14 +182,29 @@
     <div class="main-container">
         <div id="map"></div>
         <div class="sidebar">
-            <h3>📞 เบอร์โทรฉุกเฉิน</h3>
-            <div class="emergency-btn">
-                <b>สายด่วน ปภ. สมุทรปราการ</b>
-                <span>📞 02-382-6040 (24 ชม.)</span>
+            <h3>📢 แจ้งเบาะแสสถานการณ์น้ำจากพื้นที่</h3>
+            <div class="report-form">
+                <form id="waterReportForm" onsubmit="submitReport(event)">
+                    <select id="reportLocation" required>
+                        <option value="">-- เลือกพื้นที่ / อำเภอ --</option>
+                        <option value="อำเภอเมืองสมุทรปราการ">อำเภอเมืองสมุทรปราการ</option>
+                        <option value="อำเภอพระประแดง">อำเภอพระประแดง</option>
+                        <option value="อำเภอพระสมุทรเจดีย์">อำเภอพระสมุทรเจดีย์</option>
+                        <option value="อำเภอบางพลี">อำเภอบางพลี</option>
+                        <option value="อำเภอบางบ่อ">อำเภอบางบ่อ</option>
+                        <option value="อำเภอบางเสาธง">อำเภอบางเสาธง</option>
+                    </select>
+                    <input type="text" id="reportLevel" placeholder="ระดับน้ำ / ลักษณะ (เช่น น้ำท่วมขัง 20 ซม.)" required>
+                    <textarea id="reportDetail" placeholder="รายละเอียด / ซอย / ถนน" rows="2" required></textarea>
+                    <input type="text" id="reportName" placeholder="ชื่อผู้แจ้ง (ไม่บังคับ)">
+                    <input type="text" id="reportImage" placeholder="ลิงก์รูปถ่าย (ถ้ามี เช่น URL รูปภาพ)">
+                    <button type="submit">📤 ส่งข้อมูลอัปเดต</button>
+                </form>
             </div>
-            <div class="emergency-btn">
-                <b>ศูนย์ป้องกันและบรรเทาสาธารณภัยเทศบาลฯ</b>
-                <span>📞 199 หรือ 02-395-0010</span>
+
+            <h3>📋 รายงานสดจากพื้นที่</h3>
+            <div id="reportFeed">
+                <!-- รายการอัปเดตจะแสดงที่นี่ -->
             </div>
         </div>
     </div>
@@ -175,7 +220,6 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // ฐานข้อมูลจุดตรวจวัดระดับน้ำจำลอง
         const stations = [
             { id: 1, name: "จุดตรวจวัดอำเภอเมือง (ปากน้ำ)", lat: 13.5990, lng: 100.5990, level: 35, status: "normal" },
             { id: 2, name: "จุดตรวจวัดชุมชนบางปู", lat: 13.5350, lng: 100.6500, level: 85, status: "warning" },
@@ -189,7 +233,6 @@
         let markers = [];
 
         function renderMarkers(data) {
-            // ล้างหมุดเก่าออกก่อน
             markers.forEach(m => map.removeLayer(m));
             markers = [];
 
@@ -219,20 +262,65 @@
             });
         }
 
-        // แสดงหมุดทั้งหมดตอนเริ่ม
         renderMarkers(stations);
 
-        // ฟังก์ชันค้นหาจุดตรวจวัด
         function filterStations() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = stations.filter(s => s.name.toLowerCase().includes(query));
             renderMarkers(filtered);
-            
-            // ถ้าเจอผลลัพธ์ ให้ซูมไปที่จุดแรกที่พบ
             if (filtered.length > 0) {
                 map.setView([filtered[0].lat, filtered[0].lng], 13);
             }
         }
+
+        // จัดการระบบส่งและแสดงรายงานจากฟอร์ม
+        function submitReport(event) {
+            event.preventDefault();
+
+            const newReport = {
+                location: document.getElementById('reportLocation').value,
+                level: document.getElementById('reportLevel').value,
+                detail: document.getElementById('reportDetail').value,
+                name: document.getElementById('reportName').value || "พลเมืองดี",
+                image: document.getElementById('reportImage').value,
+                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
+            reports.unshift(newReport); // เอาไว้บนสุด
+            localStorage.setItem('water_reports', JSON.stringify(reports));
+
+            alert("ส่งข้อมูลรายงานสถานการณ์น้ำเรียบร้อยแล้ว!");
+            document.getElementById('waterReportForm').reset();
+            loadReports();
+        }
+
+        function loadReports() {
+            const feedContainer = document.getElementById('reportFeed');
+            let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
+
+            if (reports.length === 0) {
+                feedContainer.innerHTML = '<p style="color: #a0aec0; font-size: 0.85rem; text-align: center;">ยังไม่มีรายงานจากพื้นที่</p>';
+                return;
+            }
+
+            feedContainer.innerHTML = '';
+            reports.forEach(r => {
+                let imgHtml = r.image ? <div style="margin-top:5px;"><a href="${r.image}" target="_blank" style="color: var(--secondary); font-size: 0.8rem;">🔗 ดูรูปภาพแนบ</a></div> : '';
+                feedContainer.innerHTML += `
+                    <div class="feed-card">
+                        <b>📍 ${r.location}</b> <span style="float: right; color: #718096; font-size: 0.75rem;">${r.time}</span><br>
+                        <span>สถานะ: ${r.level}</span><br>
+                        <span style="color: #4a5568;">รายละเอียด: ${r.detail}</span><br>
+                        <span style="color: #718096; font-size: 0.75rem;">โดย: ${r.name}</span>
+                        ${imgHtml}
+                    </div>
+                `;
+            });
+        }
+
+        // โหลดข้อมูลรายงานตอนเปิดเว็บ
+        loadReports();
     </script>
 </body>
 </html>
