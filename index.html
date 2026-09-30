@@ -1,4 +1,323 @@
-<!-- Leaflet JS -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบศูนย์กลางติดตามและแจ้งเตือนภัยพิบัติน้ำท่วม จ.สมุทรปราการ</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts (Prompt) -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --level1: #10b981; /* น้ำแห้ง */
+            --level2: #3b82f6; /* น้ำระดับเข่า */
+            --level3: #f59e0b; /* น้ำระดับเอว */
+            --level4: #f97316; /* น้ำระดับอก */
+            --level5: #ef4444; /* น้ำเกินอก */
+            --level6: #7c3aed; /* น้ำมิดหัว */
+            --bg-light: #f8fafc;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            font-family: 'Prompt', sans-serif;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-light);
+            color: #334155;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        .btn-sos {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #f87171;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .level-bar-container {
+            background: white;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .color-spectrum {
+            display: flex;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .spectrum-item { flex-grow: 1; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+        .stat-card {
+            background: #f1f5f9;
+            padding: 4px 2px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .control-bar {
+            background: white;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+        .btn-action.secondary { background: white; color: var(--primary); border: 1px solid #cbd5e1; }
+        .btn-action.report-btn { background: #059669; color: white; }
+        
+        .filters-row {
+            background: white;
+            padding: 6px 12px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .filters-row select {
+            width: 50%;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.8rem;
+            background: white;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        #map {
+            flex-grow: 1;
+            height: 100%;
+        }
+        .sidebar {
+            width: 380px;
+            background: white;
+            border-left: 1px solid #e2e8f0;
+            padding: 12px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .feed-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #cbd5e1;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        .feed-time { color: #64748b; font-size: 0.7rem; }
+        .badge-status {
+            background: #fef3c7;
+            color: #b45309;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        .feed-img {
+            width: 100%;
+            max-height: 130px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-top: 6px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 85vh;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 3px; font-size: 0.8rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: 35vh; }
+            #map { height: 65vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <span>🌊 ระดับน้ำ จ.สมุทรปราการ</span>
+        <button class="btn-sos" onclick="alert('📞 สายด่วนกู้ภัยสมุทรปราการ: 1669')">📞 โทร 1669</button>
+    </header>
+
+    <div class="level-bar-container">
+        <div class="color-spectrum">
+            <div class="spectrum-item" style="background: var(--level1);"></div>
+            <div class="spectrum-item" style="background: var(--level2);"></div>
+            <div class="spectrum-item" style="background: var(--level3);"></div>
+            <div class="spectrum-item" style="background: var(--level4);"></div>
+            <div class="spectrum-item" style="background: var(--level5);"></div>
+            <div class="spectrum-item" style="background: var(--level6);"></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card" style="border-top: 3px solid var(--level1);">แห้ง<br><span id="cnt1">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level2);">เข่า<br><span id="cnt2">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level3);">เอว<br><span id="cnt3">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level4);">อก<br><span id="cnt4">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level5);">เกินอก<br><span id="cnt5">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level6);">มิดหัว<br><span id="cnt6">0</span></div>
+        </div>
+    </div>
+
+    <div class="control-bar">
+        <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
+        <button class="btn-action" onclick="getGPSLocation()">📍 พิกัดฉัน</button>
+        <button class="btn-action secondary" onclick="resetFilters()">🔄 รีเซ็ต</button>
+    </div>
+
+    <div class="filters-row">
+        <select id="filterDistrict" onchange="filterData()">
+            <option value="">ทุกอำเภอ</option>
+            <option value="อำเภอเมืองสมุทรปราการ">อ.เมืองสมุทรปราการ</option>
+            <option value="อำเภอพระประแดง">อ.พระประแดง</option>
+            <option value="อำเภอพระสมุทรเจดีย์">อ.พระสมุทรเจดีย์</option>
+            <option value="อำเภอบางพลี">อ.บางพลี</option>
+            <option value="อำเภอบางบ่อ">อ.บางบ่อ</option>
+            <option value="อำเภอบางเสาธง">อ.บางเสาธง</option>
+        </select>
+        <select id="filterSubdistrict" onchange="filterData()">
+            <option value="">ทุกตำบล</option>
+            <option value="ปากน้ำ">ต.ปากน้ำ</option>
+            <option value="บางปู">ต.บางปู</option>
+            <option value="สำโรงเหนือ">ต.สำโรงเหนือ</option>
+            <option value="บางพลีใหญ่">ต.บางพลีใหญ่</option>
+        </select>
+    </div>
+
+    <div class="main-layout">
+        <div id="map"></div>
+        <div class="sidebar">
+            <h3 style="margin-top:0; font-size: 0.9rem; color: var(--primary);">📋 รายงานสดจากประชาชน</h3>
+            <div id="feedList"></div>
+        </div>
+    </div>
+
+    <!-- Modal แจ้งข้อมูล -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color: var(--primary);">📝 รายงานสถานการณ์น้ำ</h3>
+            <div class="form-group">
+                <label>สถานที่ / ซอย / จุดสังเกต:</label>
+                <input type="text" id="reportName" placeholder="เช่น ซอยมังกร หรือหมู่บ้าน...">
+            </div>
+            <div class="form-group">
+                <label>อำเภอ:</label>
+                <select id="reportDistrict">
+                    <option value="อำเภอเมืองสมุทรปราการ">อำเภอเมืองสมุทรปราการ</option>
+                    <option value="อำเภอพระประแดง">อำเภอพระประแดง</option>
+                    <option value="อำเภอพระสมุทรเจดีย์">อำเภอพระสมุทรเจดีย์</option>
+                    <option value="อำเภอบางพลี">อำเภอบางพลี</option>
+                    <option value="อำเภอบางบ่อ">อำเภอบางบ่อ</option>
+                    <option value="อำเภอบางเสาธง">อำเภอบางเสาธง</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ตำบล:</label>
+                <input type="text" id="reportSubdistrict" placeholder="เช่น บางพลีใหญ่">
+            </div>
+            <div class="form-group">
+                <label>ระดับน้ำ:</label>
+                <select id="reportLevel">
+                    <option value="1">🟢 น้ำแห้งปกติ</option>
+                    <option value="2">🔵 ระดับเข่า</option>
+                    <option value="3">🟡 ระดับเอว</option>
+                    <option value="4">🟠 ระดับอก</option>
+                    <option value="5">🔴 เกินอก</option>
+                    <option value="6">🟣 มิดหัว</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>รายละเอียด:</label>
+                <textarea id="reportText" rows="2" placeholder="รายละเอียดเพิ่มเติม"></textarea>
+            </div>
+            <div class="form-group">
+                <label>รูปถ่าย (ถ้ามี):</label>
+                <input type="file" id="reportImage" accept="image/*">
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <button class="btn-action report-btn" onclick="submitReport()">📤 ส่งรายงาน</button>
+                <button class="btn-action secondary" onclick="closeReportModal()">❌ ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([13.599, 100.599], 11);
@@ -8,27 +327,24 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 🟢 เพิ่มเส้นขอบเขตจำลอง (Polygon) ครอบคลุมพื้นที่จังหวัดสมุทรปราการโดยสังเขป
         const samutPrakanBoundaryCoords = [
-            [13.680, 100.520], // โซนพระประแดง (เหนือสุด/ตะวันตก)
-            [13.670, 100.600], // โซนสำโรงเหนือ / เมือง
-            [13.640, 100.750], // โซนบางพลี
-            [13.580, 100.860], // โซนบางบ่อ (ตะวันออกสุด)
-            [13.500, 100.820], // โซนชายฝั่งอ่าวไทย (บางบ่อ/บางปู)
-            [13.520, 100.580], // โซนพระสมุทรเจดีย์ / ป้อมพระจุลฯ
-            [13.600, 100.500]  // วนกลับมาบรรจบจุดเริ่มต้น
+            [13.680, 100.520],
+            [13.670, 100.600],
+            [13.640, 100.750],
+            [13.580, 100.860],
+            [13.500, 100.820],
+            [13.520, 100.580],
+            [13.600, 100.500]
         ];
 
-        // วาดเส้นกรอบเขตจังหวัดสีน้ำเงินเข้มโปร่งแสง
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#1e40af',       // สีเส้นขอบ
-            weight: 3,              // ความหนาของเส้น
-            dashArray: '5, 5',      // เส้นประเพื่อให้ดูเป็นแนวเขตพื้นที่ภัยพิบัติ/โซน
-            fillColor: '#3b82f6',   // สีพื้น 
-            fillOpacity: 0.05       // ความโปร่งแสงด้านใน
+            color: '#1e40af',
+            weight: 3,
+            dashArray: '5, 5',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.05
         }).addTo(map);
 
-        // ปรับมุมมองแผนให้อยู่ในกรอบขอบเขตจังหวัดพอดี
         map.fitBounds(provinceBoundary.getBounds());
 
         let samutPrakanPoints = [
@@ -60,10 +376,12 @@
                     fillOpacity: 0.85
                 }).addTo(map);
 
-                circle.bindPopup(<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time});
+                // แก้ไขใส่ Backtick ครอบข้อความ Popup ให้ถูกต้อง
+                circle.bindPopup(`<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time}`);
                 markers.push(circle);
 
-                let imgTag = item.image ? <img src="${item.image}" class="feed-img"> : '';
+                // แก้ไขใส่ Backtick ครอบ Tag รูปภาพให้ถูกต้อง
+                let imgTag = item.image ? `<img src="${item.image}" class="feed-img">` : '';
 
                 feedContainer.innerHTML += `
                     <div class="feed-item" style="border-left-color: ${colors[item.level]};">
@@ -99,6 +417,12 @@
             renderMapAndFeed(filtered);
         }
 
+        function resetFilters() {
+            document.getElementById('filterDistrict').value = "";
+            document.getElementById('filterSubdistrict').value = "";
+            renderMapAndFeed(samutPrakanPoints);
+        }
+
         function openReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
         function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
 
@@ -132,14 +456,19 @@
                 text: text || 'รายงานสถานการณ์น้ำ',
                 lat: randomLat,
                 lng: randomLng,
-                time: "เพิ่งรายงาน",
+                time: "เมื่อสักครู่",
                 image: imageUrl
             };
 
             samutPrakanPoints.unshift(newEntry);
+            
+            // ล้างค่าตัวกรองเพื่อให้อัปเดตข้อมูลใหม่แสดงผลทันที
+            document.getElementById('filterDistrict').value = "";
+            document.getElementById('filterSubdistrict').value = "";
+            
             renderMapAndFeed(samutPrakanPoints);
             closeReportModal();
-            alert('✅ ส่งรายงานสถานการณ์เรียบร้อยแล้ว หมุดของคุณถูกอัปเดตลงแผนที่ทันที!');
+            alert('✅ ส่งรายงานสำเร็จ! ข้อมูลถูกอัปเดตลงแผนที่และ Feed ทันที');
         }
 
         function getGPSLocation() {
@@ -156,3 +485,5 @@
             });
         }
     </script>
+</body>
+</html>
