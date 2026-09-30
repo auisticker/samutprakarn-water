@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามและแจ้งเตือนสถานการณ์น้ำ จังหวัดสมุทรปราการ</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts (Prompt) -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2b6cb0;
+            --danger: #e53e3e;
+            --warning: #d69e2e;
+            --success: #38a169;
+        }
+        body {
+            font-family: 'Prompt', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f7fafc;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .emergency-ticker {
+            background-color: var(--danger);
+            color: white;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .control-panel {
+            background-color: white;
+            padding: 12px 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            z-index: 1000;
+        }
+        .search-box {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.9rem;
+            width: 220px;
+        }
+        .legend-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        .badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .badge-normal { background-color: var(--success); }
+        .badge-warning { background-color: var(--warning); }
+        .badge-danger { background-color: var(--danger); }
+
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        #map {
+            flex-grow: 1;
+            height: 100%;
+        }
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-left: 1px solid #e2e8f0;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+            z-index: 999;
+        }
+        .sidebar h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 8px;
+        }
+        .emergency-btn {
+            background-color: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: var(--danger);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .emergency-btn b { display: block; font-size: 0.95rem; }
+        
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <span>🌊 ระบบติดตามสถานการณ์น้ำ สมุทรปราการ</span>
+        <span style="font-size: 0.85rem; font-weight: 300;">อัปเดตแบบเรียลไทม์</span>
+    </header>
+
+    <div class="emergency-ticker">
+        <span>🚨 แจ้งเตือนด่วน:</span>
+        <span>เฝ้าระวังน้ำทะเลหนุนสูงบริเวณริมแม่น้ำเจ้าพระยาและคลองสาขา ช่วงค่ำวันนี้</span>
+    </div>
+
+    <div class="control-panel">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 ค้นหาอำเภอ / จุดตรวจวัด..." onkeyup="filterStations()">
+        <div class="legend-group">
+            <span><b>สถานะ:</b></span>
+            <span><span class="badge badge-normal"></span>ปกติ</span>
+            <span><span class="badge badge-warning"></span>เฝ้าระวัง</span>
+            <span><span class="badge badge-danger"></span>วิกฤต</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div id="map"></div>
+        <div class="sidebar">
+            <h3>📞 เบอร์โทรฉุกเฉิน</h3>
+            <div class="emergency-btn">
+                <b>สายด่วน ปภ. สมุทรปราการ</b>
+                <span>📞 02-382-6040 (24 ชม.)</span>
+            </div>
+            <div class="emergency-btn">
+                <b>ศูนย์ป้องกันและบรรเทาสาธารณภัยเทศบาลฯ</b>
+                <span>📞 199 หรือ 02-395-0010</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ตั้งค่าพิกัดกลางจังหวัดสมุทรปราการ
+        const map = L.map('map').setView([13.599, 100.599], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // ฐานข้อมูลจุดตรวจวัดระดับน้ำจำลอง
+        const stations = [
+            { id: 1, name: "จุดตรวจวัดอำเภอเมือง (ปากน้ำ)", lat: 13.5990, lng: 100.5990, level: 35, status: "normal" },
+            { id: 2, name: "จุดตรวจวัดชุมชนบางปู", lat: 13.5350, lng: 100.6500, level: 85, status: "warning" },
+            { id: 3, name: "จุดตรวจวัดอำเภอพระประแดง", lat: 13.6600, lng: 100.5300, level: 40, status: "normal" },
+            { id: 4, name: "จุดตรวจวัดอำเภอพระสมุทรเจดีย์", lat: 13.5950, lng: 100.5850, level: 115, status: "danger" },
+            { id: 5, name: "จุดตรวจวัดอำเภอบางพลี", lat: 13.6110, lng: 100.7000, level: 60, status: "warning" },
+            { id: 6, name: "จุดตรวจวัดอำเภอบางบ่อ", lat: 13.5750, lng: 100.8400, level: 30, status: "normal" },
+            { id: 7, name: "จุดตรวจวัดอำเภอบางเสาธง", lat: 13.5850, lng: 100.7700, level: 25, status: "normal" }
+        ];
+
+        let markers = [];
+
+        function renderMarkers(data) {
+            // ล้างหมุดเก่าออกก่อน
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            data.forEach(station => {
+                let color = '#38a169';
+                if (station.status === 'warning') color = '#d69e2e';
+                if (station.status === 'danger') color = '#e53e3e';
+
+                const circleMarker = L.circleMarker([station.lat, station.lng], {
+                    radius: 12,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+
+                circleMarker.bindPopup(`
+                    <div style="font-family: 'Prompt', sans-serif; font-size: 0.9rem;">
+                        <b>${station.name}</b><br>
+                        ระดับน้ำ: <b>${station.level} ซม.</b><br>
+                        สถานะ: <span style="color: ${color}; font-weight: bold;">${station.status.toUpperCase()}</span>
+                    </div>
+                `);
+
+                markers.push(circleMarker);
+            });
+        }
+
+        // แสดงหมุดทั้งหมดตอนเริ่ม
+        renderMarkers(stations);
+
+        // ฟังก์ชันค้นหาจุดตรวจวัด
+        function filterStations() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = stations.filter(s => s.name.toLowerCase().includes(query));
+            renderMarkers(filtered);
+            
+            // ถ้าเจอผลลัพธ์ ให้ซูมไปที่จุดแรกที่พบ
+            if (filtered.length > 0) {
+                map.setView([filtered[0].lat, filtered[0].lng], 13);
+            }
+        }
+    </script>
+</body>
+</html>
