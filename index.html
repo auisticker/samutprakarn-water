@@ -94,7 +94,7 @@
             height: 100%;
         }
         .sidebar {
-            width: 350px;
+            width: 380px;
             background: white;
             border-left: 1px solid #e2e8f0;
             padding: 15px;
@@ -110,16 +110,23 @@
             padding-bottom: 8px;
         }
         .report-form {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
+            background: #fffaf0;
+            border: 2px solid #ed8936;
+            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .report-form label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #2d3748;
+            display: block;
+            margin-bottom: 4px;
         }
         .report-form input, .report-form select, .report-form textarea {
             width: 100%;
             padding: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             border: 1px solid #cbd5e0;
             border-radius: 6px;
             font-family: 'Prompt', sans-serif;
@@ -127,24 +134,25 @@
             box-sizing: border-box;
         }
         .report-form button {
-            background-color: var(--secondary);
+            background-color: #ed8936;
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             width: 100%;
             border-radius: 6px;
             font-family: 'Prompt', sans-serif;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
         }
         .report-form button:hover {
-            background-color: #2b6cb0;
+            background-color: #dd6b20;
         }
         .feed-card {
             background: #fff;
             border: 1px solid #e2e8f0;
-            border-left: 4px solid var(--secondary);
-            padding: 10px;
+            border-left: 4px solid #ed8936;
+            padding: 12px;
             border-radius: 6px;
             margin-bottom: 10px;
             font-size: 0.85rem;
@@ -153,7 +161,7 @@
         
         @media (max-width: 768px) {
             .main-container { flex-direction: column-reverse; }
-            .sidebar { width: 100%; height: 320px; }
+            .sidebar { width: 100%; height: 400px; }
         }
     </style>
 </head>
@@ -182,11 +190,13 @@
     <div class="main-container">
         <div id="map"></div>
         <div class="sidebar">
-            <h3>📢 แจ้งเบาะแสสถานการณ์น้ำจากพื้นที่</h3>
+            <!-- ฟอร์มรายงานที่ทำ1ให้เห็นเด่นชัด -->
             <div class="report-form">
+                <h3 style="color: #c05621; border-bottom: 1px solid #fbd38d; margin-bottom: 10px;">📸 แจ้งเบาะแส / ส่งรูปน้ำท่วม-ถนนเสีย</h3>
                 <form id="waterReportForm" onsubmit="submitReport(event)">
+                    <label>เลือกพื้นที่ / อำเภอ:</label>
                     <select id="reportLocation" required>
-                        <option value="">-- เลือกพื้นที่ / อำเภอ --</option>
+                        <option value="">-- กรุณาเลือกอำเภอ --</option>
                         <option value="อำเภอเมืองสมุทรปราการ">อำเภอเมืองสมุทรปราการ</option>
                         <option value="อำเภอพระประแดง">อำเภอพระประแดง</option>
                         <option value="อำเภอพระสมุทรเจดีย์">อำเภอพระสมุทรเจดีย์</option>
@@ -194,15 +204,24 @@
                         <option value="อำเภอบางบ่อ">อำเภอบางบ่อ</option>
                         <option value="อำเภอบางเสาธง">อำเภอบางเสาธง</option>
                     </select>
-                    <input type="text" id="reportLevel" placeholder="ระดับน้ำ / ลักษณะ (เช่น น้ำท่วมขัง 20 ซม.)" required>
-                    <textarea id="reportDetail" placeholder="รายละเอียด / ซอย / ถนน" rows="2" required></textarea>
-                    <input type="text" id="reportName" placeholder="ชื่อผู้แจ้ง (ไม่บังคับ)">
-                    <input type="text" id="reportImage" placeholder="ลิงก์รูปถ่าย (ถ้ามี เช่น URL รูปภาพ)">
-                    <button type="submit">📤 ส่งข้อมูลอัปเดต</button>
+
+                    <label>ระดับน้ำ / สภาพปัญหา:</label>
+                    <input type="text" id="reportLevel" placeholder="เช่น น้ำท่วมสูง 20 ซม. / ถนนชำรุด" required>
+
+                    <label>รายละเอียดเพิ่มเติม:</label>
+                    <textarea id="reportDetail" placeholder="ระบุซอย ถนน หรือจุดสังเกต..." rows="2" required></textarea>
+
+                    <label>แนบรูปถ่าย (อัปโหลดไฟล์ภาพ):</label>
+                    <input type="file" id="reportImageFile" accept="image/*" style="background: white; padding: 5px;">
+
+                    <label>ชื่อผู้แจ้ง (ไม่บังคับ):</label>
+                    <input type="text" id="reportName" placeholder="ระบุชื่อของคุณ">
+
+                    <button type="submit">📤 ส่งข้อมูลรายงานทันที</button>
                 </form>
             </div>
 
-            <h3>📋 รายงานสดจากพื้นที่</h3>
+            <h3>📋 รายงานสดจากพื้นที่ล่าสุด</h3>
             <div id="reportFeed">
                 <!-- รายการอัปเดตจะแสดงที่นี่ -->
             </div>
@@ -212,7 +231,6 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ตั้งค่าพิกัดกลางจังหวัดสมุทรปราการ
         const map = L.map('map').setView([13.599, 100.599], 11);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -273,24 +291,38 @@
             }
         }
 
-        // จัดการระบบส่งและแสดงรายงานจากฟอร์ม
         function submitReport(event) {
             event.preventDefault();
 
+            const fileInput = document.getElementById('reportImageFile');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    saveReportData(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveReportData("");
+            }
+        }
+
+        function saveReportData(imageSrc) {
             const newReport = {
                 location: document.getElementById('reportLocation').value,
                 level: document.getElementById('reportLevel').value,
                 detail: document.getElementById('reportDetail').value,
                 name: document.getElementById('reportName').value || "พลเมืองดี",
-                image: document.getElementById('reportImage').value,
+                image: imageSrc,
                 time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
             };
 
             let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
-            reports.unshift(newReport); // เอาไว้บนสุด
+            reports.unshift(newReport);
             localStorage.setItem('water_reports', JSON.stringify(reports));
 
-            alert("ส่งข้อมูลรายงานสถานการณ์น้ำเรียบร้อยแล้ว!");
+            alert("ส่งข้อมูลรายงานและรูปภาพสำเร็จ ขอบคุณที่ร่วมแจ้งเบาะแสครับ!");
             document.getElementById('waterReportForm').reset();
             loadReports();
         }
@@ -300,26 +332,25 @@
             let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
 
             if (reports.length === 0) {
-                feedContainer.innerHTML = '<p style="color: #a0aec0; font-size: 0.85rem; text-align: center;">ยังไม่มีรายงานจากพื้นที่</p>';
+                feedContainer.innerHTML = '<p style="color: #a0aec0; font-size: 0.85rem; text-align: center; padding: 10px;">ยังไม่มีรายงานจากพื้นที่</p>';
                 return;
             }
 
             feedContainer.innerHTML = '';
             reports.forEach(r => {
-                let imgHtml = r.image ? <div style="margin-top:5px;"><a href="${r.image}" target="_blank" style="color: var(--secondary); font-size: 0.8rem;">🔗 ดูรูปภาพแนบ</a></div> : '';
+                let imgHtml = r.image ? <div style="margin-top: 8px;"><img src="${r.image}" style="max-width: 100%; height: auto; border-radius: 4px; border: 1px solid #cbd5e0;"></div> : '';
                 feedContainer.innerHTML += `
                     <div class="feed-card">
                         <b>📍 ${r.location}</b> <span style="float: right; color: #718096; font-size: 0.75rem;">${r.time}</span><br>
-                        <span>สถานะ: ${r.level}</span><br>
-                        <span style="color: #4a5568;">รายละเอียด: ${r.detail}</span><br>
-                        <span style="color: #718096; font-size: 0.75rem;">โดย: ${r.name}</span>
+                        <span><b>สภาพปัญหา:</b> ${r.level}</span><br>
+                        <span style="color: #4a5568;"><b>รายละเอียด:</b> ${r.detail}</span><br>
+                        <span style="color: #718096; font-size: 0.75rem;">ผู้แจ้ง: ${r.name}</span>
                         ${imgHtml}
                     </div>
                 `;
             });
         }
 
-        // โหลดข้อมูลรายงานตอนเปิดเว็บ
         loadReports();
     </script>
 </body>
