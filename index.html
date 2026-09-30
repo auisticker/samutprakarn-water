@@ -1,330 +1,6 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบศูนย์กลางติดตามและแจ้งเตือนภัยพิบัติน้ำท่วม จังหวัดสมุทรปราการ</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Google Fonts (Prompt) -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #0f172a;
-            --secondary: #1e3a8a;
-            --accent: #2563eb;
-            --level1: #10b981; /* เขียว: 1-30 ซม. (ปกติ) */
-            --level2: #34d399; /* เขียวอ่อน: 31-50 ซม. */
-            --level3: #facc15; /* เหลือง: 51-70 ซม. (เฝ้าระวัง) */
-            --level4: #fbbf24; /* เหลืองเข้ม: 71-90 ซม. */
-            --level5: #f97316; /* ส้ม: 91-120 ซม. (วิกฤตปานกลาง) */
-            --level6: #ef4444; /* แดง: 121-180 ซม. (วิกฤตสูง) */
-            --bg-light: #f8fafc;
-        }
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Prompt', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: var(--bg-light);
-            color: #334155;
-        }
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 12px 20px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-        .emergency-ticker {
-            background: linear-gradient(135deg, var(--level6), #dc2626);
-            color: white;
-            padding: 8px 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-        }
-        .stats-bar {
-            background: white;
-            padding: 10px 20px;
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 0.75rem;
-            text-align: center;
-            z-index: 1000;
-        }
-        .stat-box {
-            background: #f1f5f9;
-            padding: 5px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-        .control-panel {
-            background-color: white;
-            padding: 12px 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            border-bottom: 1px solid #e2e8f0;
-            flex-wrap: wrap;
-            z-index: 1000;
-        }
-        .search-box {
-            padding: 8px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-family: 'Prompt', sans-serif;
-            font-size: 0.9rem;
-            width: 240px;
-            outline: none;
-        }
-        .legend-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            font-size: 0.75rem;
-            flex-wrap: wrap;
-        }
-        .badge {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 2px;
-        }
-        .badge-l1 { background-color: var(--level1); }
-        .badge-l2 { background-color: var(--level2); }
-        .badge-l3 { background-color: var(--level3); }
-        .badge-l4 { background-color: var(--level4); }
-        .badge-l5 { background-color: var(--level5); }
-        .badge-l6 { background-color: var(--level6); }
-
-        .main-container {
-            display: flex;
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-        }
-        #map {
-            flex-grow: 1;
-            height: 100%;
-        }
-        .sidebar {
-            width: 420px;
-            background: white;
-            border-left: 1px solid #e2e8f0;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: -4px 0 15px rgba(0,0,0,0.03);
-            z-index: 999;
-        }
-        .sidebar h3 {
-            margin-top: 0;
-            font-size: 1.05rem;
-            color: var(--primary);
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .report-form {
-            background: #fffbeb;
-            border: 2px solid #f59e0b;
-            padding: 16px;
-            border-radius: 10px;
-            margin-bottom: 24px;
-        }
-        .report-form label {
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: #1e293b;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .report-form input, .report-form select, .report-form textarea {
-            width: 100%;
-            padding: 9px 12px;
-            margin-bottom: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-family: 'Prompt', sans-serif;
-            font-size: 0.85rem;
-            background: white;
-        }
-        .btn-gps {
-            background-color: #0ea5e9;
-            color: white;
-            border: none;
-            padding: 10px;
-            width: 100%;
-            border-radius: 8px;
-            font-family: 'Prompt', sans-serif;
-            font-weight: 500;
-            font-size: 0.85rem;
-            cursor: pointer;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .btn-gps:hover { background-color: #0284c7; }
-        .report-form button[type="submit"] {
-            background-color: #f59e0b;
-            color: white;
-            border: none;
-            padding: 11px;
-            width: 100%;
-            border-radius: 8px;
-            font-family: 'Prompt', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        .report-form button[type="submit"]:hover { background-color: #d97706; }
-        
-        .feed-card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-left: 5px solid #cbd5e1;
-            padding: 14px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            font-size: 0.85rem;
-            position: relative;
-        }
-        .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .vote-btn {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 4px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: 'Prompt', sans-serif;
-            font-size: 0.75rem;
-            color: #475569;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 8px;
-        }
-        .vote-btn:hover { background: #e2e8f0; }
-
-        @media (max-width: 768px) {
-            .main-container { flex-direction: column-reverse; }
-            .sidebar { width: 100%; height: 450px; }
-            .stats-bar { grid-template-columns: repeat(3, 1fr); }
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <span>🌊 ศูนย์ข้อมูลภัยพิบัติน้ำท่วม จ.สมุทรปราการ</span>
-        <span style="font-size: 0.8rem; font-weight: 300;" id="currentDateTime">--/--/---- --:--</span>
-    </header>
-
-    <div class="emergency-ticker">
-        <span>🚨 แจ้งเตือนสถานการณ์ด่วน:</span>
-        <span>เฝ้าระวังน้ำทะเลหนุนสูงและฝนตกสะสมในพื้นที่ ขอให้ประชาชนติดตามประกาศอย่างใกล้ชิด</span>
-    </div>
-
-    <!-- แถบสรุปสถิติ 6 ระดับ -->
-    <div class="stats-bar">
-        <div class="stat-box" style="border-left: 3px solid var(--level1);">ร.1 (1-30ซม.): <span id="cntL1">0</span></div>
-        <div class="stat-box" style="border-left: 3px solid var(--level2);">ร.2 (31-50ซม.): <span id="cntL2">0</span></div>
-        <div class="stat-box" style="border-left: 3px solid var(--level3);">ร.3 (51-70ซม.): <span id="cntL3">0</span></div>
-        <div class="stat-box" style="border-left: 3px solid var(--level4);">ร.4 (71-90ซม.): <span id="cntL4">0</span></div>
-        <div class="stat-box" style="border-left: 3px solid var(--level5);">ร.5 (91-120ซม.): <span id="cntL5">0</span></div>
-        <div class="stat-box" style="border-left: 3px solid var(--level6);">ร.6 (121+ซม.): <span id="cntL6">0</span></div>
-    </div>
-
-    <div class="control-panel">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 ค้นหาอำเภอ / จุดตรวจวัด..." onkeyup="filterStations()">
-        <div class="legend-group">
-            <span><b>เกณฑ์ (6 ระดับ):</b></span>
-            <span><span class="badge badge-l1"></span>1-30</span>
-            <span><span class="badge badge-l2"></span>31-50</span>
-            <span><span class="badge badge-l3"></span>51-70</span>
-            <span><span class="badge badge-l4"></span>71-90</span>
-            <span><span class="badge badge-l5"></span>91-120</span>
-            <span><span class="badge badge-l6"></span>121+ ซม.</span>
-        </div>
-    </div>
-
-    <div class="main-container">
-        <div id="map"></div>
-        <div class="sidebar">
-            <div class="report-form">
-                <h3 style="color: #b45309; border-bottom: 1px solid #fde68a; margin-bottom: 12px; font-size: 0.95rem;">
-                    📍 แจ้งเบาะแส / อัปเดตระดับน้ำเรียลไทม์
-                </h3>
-                <form id="waterReportForm" onsubmit="submitReport(event)">
-                    <button type="button" class="btn-gps" onclick="getGPSLocation()">
-                        📍 ดึงพิกัด GPS อัตโนมัติจากมือถือคุณ
-                    </button>
-                    <div id="gpsStatus" style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px; text-align: center; font-weight: 500;">
-                        ยังไม่ได้ระบุพิกัด GPS
-                    </div>
-                    <input type="hidden" id="reportLat">
-                    <input type="hidden" id="reportLng">
-
-                    <label>เลือกอำเภอในพื้นที่:</label>
-                    <select id="reportLocation" required>
-                        <option value="">-- กรุณาเลือกอำเภอ --</option>
-                        <option value="อำเภอเมืองสมุทรปราการ">อำเภอเมืองสมุทรปราการ</option>
-                        <option value="อำเภอพระประแดง">อำเภอพระประแดง</option>
-                        <option value="อำเภอพระสมุทรเจดีย์">อำเภอพระสมุทรเจดีย์</option>
-                        <option value="อำเภอบางพลี">อำเภอบางพลี</option>
-                        <option value="อำเภอบางบ่อ">อำเภอบางบ่อ</option>
-                        <option value="อำเภอบางเสาธง">อำเภอบางเสาธง</option>
-                    </select>
-
-                    <label>ระดับน้ำท่วมขัง (เซนติเมตร):</label>
-                    <input type="number" id="reportCm" placeholder="ระบุตัวเลข 1 ถึง 180 ซม." min="1" max="180" required>
-
-                    <label>รายละเอียดเพิ่มเติม (ซอย, ถนน, จุดสังเกต):</label>
-                    <textarea id="reportDetail" placeholder="ระบุสภาพเส้นทาง รถเล็กผ่านได้ไหม..." rows="2" required></textarea>
-
-                    <label>แนบรูปถ่ายสถานการณ์ (ถ้ามี):</label>
-                    <input type="file" id="reportImageFile" accept="image/*" style="padding: 4px; font-size: 0.8rem;">
-
-                    <label>ชื่อผู้แจ้ง (ไม่บังคับ):</label>
-                    <input type="text" id="reportName" placeholder="ระบุชื่อของคุณ หรือ พลเมืองดี">
-
-                    <button type="submit">🚀 ส่งข้อมูลรายงานทันที</button>
-                </form>
-            </div>
-
-            <h3>📋 รายงานสดจากพื้นที่ (Live Community Feed)</h3>
-            <div id="reportFeed"></div>
-        </div>
-    </div>
-
-    <!-- Leaflet JS -->
+<!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentDateTime').innerText = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
         const map = L.map('map').setView([13.599, 100.599], 11);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -332,257 +8,151 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // เส้นขอบเขตจังหวัดสมุทรปราการ
-        const samutPrakanBoundary = [
-            [13.665, 100.520],
-            [13.710, 100.730],
-            [13.590, 100.880],
-            [13.480, 100.750],
-            [13.500, 100.550],
-            [13.665, 100.520]
+        // 🟢 เพิ่มเส้นขอบเขตจำลอง (Polygon) ครอบคลุมพื้นที่จังหวัดสมุทรปราการโดยสังเขป
+        const samutPrakanBoundaryCoords = [
+            [13.680, 100.520], // โซนพระประแดง (เหนือสุด/ตะวันตก)
+            [13.670, 100.600], // โซนสำโรงเหนือ / เมือง
+            [13.640, 100.750], // โซนบางพลี
+            [13.580, 100.860], // โซนบางบ่อ (ตะวันออกสุด)
+            [13.500, 100.820], // โซนชายฝั่งอ่าวไทย (บางบ่อ/บางปู)
+            [13.520, 100.580], // โซนพระสมุทรเจดีย์ / ป้อมพระจุลฯ
+            [13.600, 100.500]  // วนกลับมาบรรจบจุดเริ่มต้น
         ];
 
-        L.polygon(samutPrakanBoundary, {
-            color: '#ef4444',
-            weight: 4,
-            dashArray: '8, 8',
-            fillColor: '#3b82f6',
-            fillOpacity: 0.03
-        }).addTo(map).bindPopup("<b>เขตพื้นที่จังหวัดสมุทรปราการ</b>");
+        // วาดเส้นกรอบเขตจังหวัดสีน้ำเงินเข้มโปร่งแสง
+        const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
+            color: '#1e40af',       // สีเส้นขอบ
+            weight: 3,              // ความหนาของเส้น
+            dashArray: '5, 5',      // เส้นประเพื่อให้ดูเป็นแนวเขตพื้นที่ภัยพิบัติ/โซน
+            fillColor: '#3b82f6',   // สีพื้น 
+            fillOpacity: 0.05       // ความโปร่งแสงด้านใน
+        }).addTo(map);
 
-        // เส้นแบ่งเขตอำเภอ
-        const districtLines = [
-            [[13.660, 100.550], [13.590, 100.600]],
-            [[13.630, 100.620], [13.570, 100.700]],
-            [[13.620, 100.720], [13.550, 100.800]],
-            [[13.600, 100.750], [13.520, 100.780]]
+        // ปรับมุมมองแผนให้อยู่ในกรอบขอบเขตจังหวัดพอดี
+        map.fitBounds(provinceBoundary.getBounds());
+
+        let samutPrakanPoints = [
+            { id: 1, name: "ปากน้ำ ซอย 1", district: "อำเภอเมืองสมุทรปราการ", subdistrict: "ปากน้ำ", level: 1, text: "น้ำแห้ง / ต่ำกว่าข้อเท้า", lat: 13.5990, lng: 100.5990, time: "14:20 น.", image: "" },
+            { id: 2, name: "ชุมชนท้ายบ้าน", district: "อำเภอเมืองสมุทรปราการ", subdistrict: "ปากน้ำ", level: 2, text: "น้ำระดับเข่า รถเล็กระวัง", lat: 13.5850, lng: 100.6100, time: "14:25 น.", image: "" },
+            { id: 3, name: "ถนนสุขสวัสดิ์ พระประแดง", district: "อำเภอพระประแดง", subdistrict: "สำโรงเหนือ", level: 3, text: "น้ำระดับเอว การจราจรติดขัด", lat: 13.6600, lng: 100.5300, time: "14:10 น.", image: "" },
+            { id: 6, name: "เคหะบางพลี", district: "อำเภอบางพลี", subdistrict: "บางพลีใหญ่", level: 2, text: "น้ำระดับเข่า ท่วมขังรอการระบาย", lat: 13.6110, lng: 100.7200, time: "14:28 น.", image: "" }
         ];
 
-        districtLines.forEach(lineCoords => {
-            L.polyline(lineCoords, {
-                color: '#8b5cf6',
-                weight: 3,
-                dashArray: '5, 5',
-                opacity: 0.8
-            }).addTo(map);
-        });
-
-        // ฟังก์ชันประเมินระดับน้ำ 6 ระดับ
-        function getWaterLevelInfo(cm) {
-            if (cm <= 30) return { level: 1, name: 'ระดับ 1 (ปกติ 1-30 ซม.)', color: '#10b981' };
-            if (cm <= 50) return { level: 2, name: 'ระดับ 2 (ปกติ-เฝ้าระวัง 31-50 ซม.)', color: '#34d399' };
-            if (cm <= 70) return { level: 3, name: 'ระดับ 3 (เฝ้าระวัง 51-70 ซม.)', color: '#facc15' };
-            if (cm <= 90) return { level: 4, name: 'ระดับ 4 (เฝ้าระวังสูง 71-90 ซม.)', color: '#fbbf24' };
-            if (cm <= 120) return { level: 5, name: 'ระดับ 5 (วิกฤตปานกลาง 91-120 ซม.)', color: '#f97316' };
-            return { level: 6, name: 'ระดับ 6 (วิกฤตสูงสุด 121+ ซม.)', color: '#ef4444' };
-        }
-
-        // สถานีตรวจวัดหลัก
-        const stations = [
-            { id: 1, name: "จุดตรวจวัดอำเภอเมือง (ปากน้ำ)", lat: 13.5990, lng: 100.5990, cm: 35 },
-            { id: 2, name: "จุดตรวจวัดชุมชนบางปู", lat: 13.5350, lng: 100.6500, cm: 85 },
-            { id: 3, name: "จุดตรวจวัดอำเภอพระประแดง", lat: 13.6600, lng: 100.5300, cm: 25 },
-            { id: 4, name: "จุดตรวจวัดอำเภอพระสมุทรเจดีย์", lat: 13.5950, lng: 100.5850, cm: 130 },
-            { id: 5, name: "จุดตรวจวัดอำเภอบางพลี", lat: 13.6110, lng: 100.7000, cm: 65 },
-            { id: 6, name: "จุดตรวจวัดอำเภอบางบ่อ", lat: 13.5750, lng: 100.8400, cm: 30 },
-            { id: 7, name: "จุดตรวจวัดอำเภอบางเสาธง", lat: 13.5850, lng: 100.7700, cm: 45 }
-        ];
-
+        const colors = { 1: '#10b981', 2: '#3b82f6', 3: '#f59e0b', 4: '#f97316', 5: '#ef4444', 6: '#7c3aed' };
         let markers = [];
 
-        function updateStatistics(allPoints) {
-            let c1 = 0, c2 = 0, c3 = 0, c4 = 0, c5 = 0, c6 = 0;
-            allPoints.forEach(p => {
-                const info = getWaterLevelInfo(p.cm);
-                if (info.level === 1) c1++;
-                else if (info.level === 2) c2++;
-                else if (info.level === 3) c3++;
-                else if (info.level === 4) c4++;
-                else if (info.level === 5) c5++;
-                else if (info.level === 6) c6++;
-            });
-            document.getElementById('cntL1').innerText = c1;
-            document.getElementById('cntL2').innerText = c2;
-            document.getElementById('cntL3').innerText = c3;
-            document.getElementById('cntL4').innerText = c4;
-            document.getElementById('cntL5').innerText = c5;
-            document.getElementById('cntL6').innerText = c6;
-        }
-
-        function renderMarkers(data) {
+        function renderMapAndFeed(data) {
             markers.forEach(m => map.removeLayer(m));
             markers = [];
+            const feedContainer = document.getElementById('feedList');
+            feedContainer.innerHTML = '';
 
-            let allCombined = [...stations];
-            let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
-            
-            stations.forEach(station => {
-                const info = getWaterLevelInfo(station.cm);
-                const circleMarker = L.circleMarker([station.lat, station.lng], {
-                    radius: 12,
-                    fillColor: info.color,
+            let counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+            data.forEach(item => {
+                counts[item.level]++;
+                
+                const circle = L.circleMarker([item.lat, item.lng], {
+                    radius: 10,
+                    fillColor: colors[item.level],
                     color: '#fff',
                     weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.9
+                    fillOpacity: 0.85
                 }).addTo(map);
 
-                circleMarker.bindPopup(`
-                    <div style="font-family: 'Prompt', sans-serif; font-size: 0.9rem;">
-                        <b>${station.name}</b><br>
-                        ระดับน้ำ: <b>${station.cm} ซม.</b><br>
-                        สถานะ: <span style="color: ${info.color}; font-weight: bold;">${info.name}</span>
-                    </div>
-                `);
-                markers.push(circleMarker);
-            });
+                circle.bindPopup(<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time});
+                markers.push(circle);
 
-            reports.forEach((r, index) => {
-                if (r.lat && r.lng) {
-                    const info = getWaterLevelInfo(r.cm);
-                    const reportMarker = L.circleMarker([r.lat, r.lng], {
-                        radius: 10,
-                        fillColor: info.color,
-                        color: '#0f172a',
-                        weight: 2,
-                        fillOpacity: 0.85
-                    }).addTo(map);
+                let imgTag = item.image ? <img src="${item.image}" class="feed-img"> : '';
 
-                    reportMarker.bindPopup(`
-                        <div style="font-family: 'Prompt', sans-serif; font-size: 0.9rem;">
-                            <b>📍 รายงานประชาชน: ${r.location}</b><br>
-                            ระดับน้ำ: <b>${r.cm} ซม.</b><br>
-                            รายละเอียด: ${r.detail}<br>
-                            ผู้แจ้ง: ${r.name} (${r.time})
-                        </div>
-                    `);
-                    markers.push(reportMarker);
-                    allCombined.push({ cm: r.cm });
-                }
-            });
-
-            updateStatistics(allCombined);
-        }
-
-        renderMarkers(stations);
-
-        function filterStations() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = stations.filter(s => s.name.toLowerCase().includes(query));
-            if (filtered.length > 0) {
-                map.setView([filtered[0].lat, filtered[0].lng], 13);
-            }
-        }
-
-        function getGPSLocation() {
-            const statusEl = document.getElementById('gpsStatus');
-            if (!navigator.geolocation) {
-                statusEl.innerText = "❌ อุปกรณ์ของคุณไม่รองรับ GPS";
-                return;
-            }
-
-            statusEl.innerText = "⏳ กำลังดึงตำแหน่งพิกัด...";
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    document.getElementById('reportLat').value = lat;
-                    document.getElementById('reportLng').value = lng;
-                    statusEl.innerHTML = `✅ ล็อกพิกัดสำเร็จ (Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)})`;
-                },
-                (error) => {
-                    statusEl.innerText = "❌ ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตสิทธิ์เข้าถึงตำแหน่ง";
-                },
-                { enableHighAccuracy: true }
-            );
-        }
-
-        function submitReport(event) {
-            event.preventDefault();
-            const fileInput = document.getElementById('reportImageFile');
-            const file = fileInput.files[0];
-
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    saveReportData(e.target.result);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                saveReportData("");
-            }
-        }
-
-        function saveReportData(imageSrc) {
-            const cmValue = parseInt(document.getElementById('reportCm').value);
-            const newReport = {
-                id: Date.now(),
-                location: document.getElementById('reportLocation').value,
-                cm: cmValue,
-                detail: document.getElementById('reportDetail').value,
-                name: document.getElementById('reportName').value || "พลเมืองดี",
-                lat: document.getElementById('reportLat').value,
-                lng: document.getElementById('reportLng').value,
-                image: imageSrc,
-                votes: 0,
-                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
-            };
-
-            let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
-            reports.unshift(newReport);
-            localStorage.setItem('water_reports', JSON.stringify(reports));
-
-            alert("🎉 ส่งข้อมูลรายงานสำเร็จ ขอบคุณที่คุณเอิร์นนี่และประชาชนช่วยแจ้งเบาะแสครับ!");
-            document.getElementById('waterReportForm').reset();
-            document.getElementById('gpsStatus').innerText = "ยังไม่ได้ระบุพิกัด GPS";
-            loadReports();
-            renderMarkers(stations);
-        }
-
-        function upvoteReport(id) {
-            let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
-            reports = reports.map(r => {
-                if (r.id === id) {
-                    r.votes = (r.votes || 0) + 1;
-                }
-                return r;
-            });
-            localStorage.setItem('water_reports', JSON.stringify(reports));
-            loadReports();
-        }
-
-        function loadReports() {
-            const feedContainer = document.getElementById('reportFeed');
-            let reports = JSON.parse(localStorage.getItem('water_reports') || '[]');
-
-            if (reports.length === 0) {
-                feedContainer.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 15px;">ยังไม่มีรายงานสถานการณ์จากพื้นที่</p>';
-                return;
-            }
-
-            feedContainer.innerHTML = '';
-            reports.forEach(r => {
-                const info = getWaterLevelInfo(r.cm);
-                let imgHtml = r.image ? `<div style="margin-top: 8px;"><img src="${r.image}" style="max-width: 100%; height: auto; border-radius: 6px; border: 1px solid #e2e8f0;"></div>` : '';
                 feedContainer.innerHTML += `
-                    <div class="feed-card" style="border-left-color: ${info.color};">
-                        <div class="feed-header">
-                            <b>📍 ${r.location}</b> 
-                            <span style="color: #64748b; font-size: 0.75rem;">${r.time}</span>
+                    <div class="feed-item" style="border-left-color: ${colors[item.level]};">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b>📍 ${item.name}</b>
+                            <span class="feed-time">${item.time}</span>
                         </div>
-                        <span style="font-size: 0.9rem;"><b>ระดับน้ำ:</b> ${r.cm} ซม. (<span style="color: ${info.color}; font-weight: bold;">${info.name}</span>)</span><br>
-                        <span style="color: #475569;"><b>รายละเอียด:</b> ${r.detail}</span><br>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                            <span style="color: #64748b; font-size: 0.75rem;">ผู้แจ้ง: ${r.name} ${r.lat ? '📌(มีพิกัด GPS)' : ''}</span>
-                            <button class="vote-btn" onclick="upvoteReport(${r.id})">👍 ยืนยันข้อมูล (${r.votes || 0})</button>
-                        </div>
-                        ${imgHtml}
+                        <div style="color: #475569; margin-top: 2px;">${item.district} (${item.subdistrict})</div>
+                        <span class="badge-status">${item.text}</span>
+                        ${imgTag}
                     </div>
                 `;
             });
+
+            document.getElementById('cnt1').innerText = counts[1];
+            document.getElementById('cnt2').innerText = counts[2];
+            document.getElementById('cnt3').innerText = counts[3];
+            document.getElementById('cnt4').innerText = counts[4];
+            document.getElementById('cnt5').innerText = counts[5];
+            document.getElementById('cnt6').innerText = counts[6];
         }
 
-        loadReports();
+        renderMapAndFeed(samutPrakanPoints);
+
+        function filterData() {
+            const dist = document.getElementById('filterDistrict').value;
+            const sub = document.getElementById('filterSubdistrict').value;
+            
+            let filtered = samutPrakanPoints;
+            if (dist) filtered = filtered.filter(i => i.district === dist);
+            if (sub) filtered = filtered.filter(i => i.subdistrict.includes(sub));
+
+            renderMapAndFeed(filtered);
+        }
+
+        function openReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
+        function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+
+        function submitReport() {
+            const name = document.getElementById('reportName').value;
+            const district = document.getElementById('reportDistrict').value;
+            const subdistrict = document.getElementById('reportSubdistrict').value || 'ทั่วไป';
+            const level = parseInt(document.getElementById('reportLevel').value);
+            const text = document.getElementById('reportText').value;
+            const imageInput = document.getElementById('reportImage');
+
+            if (!name) {
+                alert('กรุณากรอกชื่อสถานที่หรือจุดสังเกต');
+                return;
+            }
+
+            const randomLat = 13.58 + Math.random() * 0.08;
+            const randomLng = 100.55 + Math.random() * 0.12;
+
+            let imageUrl = '';
+            if (imageInput.files && imageInput.files[0]) {
+                imageUrl = URL.createObjectURL(imageInput.files[0]);
+            }
+
+            const newEntry = {
+                id: samutPrakanPoints.length + 1,
+                name: name,
+                district: district,
+                subdistrict: subdistrict,
+                level: level,
+                text: text || 'รายงานสถานการณ์น้ำ',
+                lat: randomLat,
+                lng: randomLng,
+                time: "เพิ่งรายงาน",
+                image: imageUrl
+            };
+
+            samutPrakanPoints.unshift(newEntry);
+            renderMapAndFeed(samutPrakanPoints);
+            closeReportModal();
+            alert('✅ ส่งรายงานสถานการณ์เรียบร้อยแล้ว หมุดของคุณถูกอัปเดตลงแผนที่ทันที!');
+        }
+
+        function getGPSLocation() {
+            if (!navigator.geolocation) {
+                alert("อุปกรณ์ไม่รองรับ GPS");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(pos => {
+                map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+                L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
+                    .bindPopup("📍 ตำแหน่งปัจจุบันของคุณ").openPopup();
+            }, () => {
+                alert("ไม่สามารถดึงพิกัด GPS ได้");
+            });
+        }
     </script>
-</body>
-</html>
