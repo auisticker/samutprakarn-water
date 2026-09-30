@@ -203,7 +203,6 @@
             width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.85rem;
         }
 
-        /* Responsive สำหรับมือถือ */
         @media (max-width: 768px) {
             .main-layout { flex-direction: column-reverse; }
             .sidebar { width: 100%; height: 35vh; }
@@ -329,7 +328,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 🚨 กำหนดเส้นขอบเขตจังหวัดสมุทรปราการ (ปรับเป็นสีแดงตามคำขอ)
+        // 🚨 กำหนดเส้นขอบเขตจังหวัดสมุทรปราการ (สีแดงชัดเจน)
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520],
             [13.670, 100.600],
@@ -342,11 +341,27 @@
 
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
             color: '#dc2626',       // 🔴 เส้นขอบสีแดง
-            weight: 3,              // ความหนาเส้น
-            dashArray: '5, 5',      // เส้นประ
-            fillColor: '#ef4444',   // สีพื้นแดงอ่อน
-            fillOpacity: 0.08       // ความโปร่งแสง
+            weight: 3,              
+            dashArray: '5, 5',      
+            fillColor: '#ef4444',   
+            fillOpacity: 0.08       
         }).addTo(map);
+
+        // 🟣 เพิ่มเส้นแบ่งเขตอำเภอภายในจังหวัดสมุทรปราการ
+        const districtLines = [
+            [[13.670, 100.550], [13.550, 100.600]], // แบ่ง อ.เมือง / พระประแดง / พระสมุทรเจดีย์
+            [[13.640, 100.650], [13.550, 100.720]], // แบ่ง อ.เมือง / บางพลี
+            [[13.620, 100.750], [13.540, 100.820]]  // แบ่ง อ.บางพลี / บางบ่อ / บางเสาธง
+        ];
+
+        districtLines.forEach(coords => {
+            L.polyline(coords, {
+                color: '#8b5cf6',     // เส้นประสีม่วงแบ่งเขตอำเภอ
+                weight: 2,
+                dashArray: '4, 4',
+                opacity: 0.7
+            }).addTo(map);
+        });
 
         map.fitBounds(provinceBoundary.getBounds());
 
@@ -379,10 +394,10 @@
                     fillOpacity: 0.85
                 }).addTo(map);
 
-                circle.bindPopup(<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time});
+                circle.bindPopup(`<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time}`);
                 markers.push(circle);
 
-                let imgTag = item.image ? <img src="${item.image}" class="feed-img"> : '';
+                let imgTag = item.image ? `<img src="${item.image}" class="feed-img">` : '';
 
                 feedContainer.innerHTML += `
                     <div class="feed-item" style="border-left-color: ${colors[item.level]};">
@@ -468,7 +483,7 @@
             
             renderMapAndFeed(samutPrakanPoints);
             closeReportModal();
-            alert('✅ ส่งรายงานสำเร็จ! หมุดสีแดงขอบเขตและข้อมูลถูกอัปเดตทันที');
+            alert('✅ ส่งรายงานสำเร็จ! ข้อมูลถูกอัปเดตลงแผนที่และ Feed ทันที');
         }
 
         function getGPSLocation() {
