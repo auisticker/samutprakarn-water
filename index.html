@@ -233,7 +233,6 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
-        /* ควบคุมการแสดงผลเฉพาะบนมือถือ (แบบพับย่อ Sidebar หรือสลับโหมด) */
         .mobile-view-toggle {
             display: none;
         }
@@ -247,19 +246,19 @@
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                height: 45vh; /* พับย่อให้เหลือพื้นที่ครึ่งล่าง มองเห็นแผนสดุดตา */
+                height: 45vh;
                 border-left: none;
                 border-top: 2px solid #cbd5e1;
                 border-radius: 16px 16px 0 0;
                 box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
-                transform: translateY(calc(100% - 45px)); /* ย่อเก็บเหลือแถบหัวข้อโผล่เล็กน้อยให้ดึงดูด */
+                transform: translateY(calc(100% - 45px));
                 transition: transform 0.3s ease-in-out;
                 background: white;
                 z-index: 2500;
                 padding-bottom: 60px;
             }
             .sidebar.active {
-                transform: translateY(0); /* ขยายขึ้นมาเต็มพื้นที่ 45vh เมื่อกดปุ่ม */
+                transform: translateY(0);
             }
             #map {
                 width: 100%;
@@ -315,7 +314,7 @@
     <div class="control-bar">
         <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
         <button class="btn-action" onclick="openLocationPicker()">📍 เลือกถนน/พิกัด</button>
-        <button class="btn-action secondary" onclick="resetFilters()">🔄 รีเซ็ต</button>
+        <button class="btn-action secondary" onclick="panToUserGPS()">🎯 ตำแหน่งของฉัน</button>
     </div>
 
     <div class="filters-row">
@@ -345,7 +344,7 @@
         </div>
     </div>
 
-    <!-- ปุ่มสลับมุมมอง/พับย่อเฉพาะมือถือ -->
+    <!-- ปุ่มสลับมุมมองเฉพาะมือถือ -->
     <div class="mobile-view-toggle" id="mobileToggleBtn" onclick="toggleMobileView()">
         <span id="mobileToggleIcon">📋 ดูรายการรายงานสด</span>
     </div>
@@ -390,10 +389,10 @@
             </div>
             <div class="form-group">
                 <label>ตำแหน่งที่ปักหมุด:</label>
-                <input type="text" id="reportCoordsDisplay" readonly value="ยังไม่ได้เลือก (ระบบจะใช้พิกัดกลางอัตโนมัติ)" style="background:#f1f5f9; font-size:0.7rem;">
+                <input type="text" id="reportCoordsDisplay" readonly value="ดึงพิกัดอัตโนมัติจาก GPS" style="background:#f1f5f9; font-size:0.7rem;">
                 <input type="hidden" id="reportLat">
                 <input type="hidden" id="reportLng">
-                <button class="btn-action secondary small-btn" style="width:100%; margin-top:4px;" onclick="openLocationPickerFromModal()">🗺️ เลือกตำแหน่งจากแผนที่</button>
+                <button class="btn-action secondary small-btn" style="width:100%; margin-top:4px;" onclick="openLocationPickerFromModal()">🗺️ ปรับตำแหน่งจากแผนที่</button>
             </div>
             <div class="form-group">
                 <label>รูปถ่าย (ถ้ามี):</label>
@@ -410,9 +409,12 @@
     <div id="locationPickerModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color: var(--primary);">📍 เลื่อนแผนที่เพื่อเลือกตำแหน่ง</h3>
-            <p style="font-size:0.7rem; color:#64748b; margin:0 0 6px 0;">เลื่อนแผนที่ให้หมุดสีแดงอยู่ตรงจุดถนนที่ต้องการ แล้วกด "ยืนยัน"</p>
+            <p style="font-size:0.7rem; color:#64748b; margin:0 0 6px 0;">เลื่อนหมุดสีแดงตรงกลางไปยังจุดที่ต้องการ หรือกดปุ่ม GPS ด้านล่าง</p>
             <div id="pickerMap">
                 <div class="map-center-pin">📍</div>
+            </div>
+            <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                <button class="btn-action secondary" onclick="pickerCenterToGPS()">🎯 ไปยังพิกัด GPS ปัจจุบัน</button>
             </div>
             <div style="display: flex; gap: 6px;">
                 <button class="btn-action report-btn" onclick="confirmLocationSelection()">✅ ยืนยันตำแหน่งนี้</button>
@@ -431,7 +433,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 🔴 ขอบเขตจังหวัดสมุทรปราการ (เส้นทึบสีแดงหนา 4 ไม่มีเส้นประ)
+        // 🔴 ขอบเขตจังหวัดสมุทรปราการ (เส้นทึบสีแดงหนา 4)
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520],
             [13.670, 100.600],
@@ -443,14 +445,75 @@
         ];
 
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#dc2626',        // เส้นทึบสีแดง
-            weight: 4,               // ความหนา 4 ตามกำหนด
-            dashArray: null,         // ไม่มีเส้นประ
-            fillColor: '#ef4444',    
+            color: '#dc2626',
+            weight: 4,
+            dashArray: null,
+            fillColor: '#ef4444',
             fillOpacity: 0.08        
         }).addTo(map);
 
-        map.fitBounds(provinceBoundary.getBounds());
+        let userLat = 13.5990;
+        let userLng = 100.5990;
+        let userMarker = null;
+
+        // ฟังก์ชันดึง GPS อัตโนมัติเมื่อเปิดหน้าเว็บ
+        function initUserGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLat = position.coords.latitude;
+                        userLng = position.coords.longitude;
+                        
+                        // ซูมแผนที่ไปที่ตำแหน่งปัจจุบันของผู้ใช้งานทันที
+                        map.setView([userLat, userLng], 14);
+
+                        // สร้างหมุดแสดงตำแหน่งผู้ใช้งาน
+                        if (userMarker) {
+                            userMarker.setLatLng([userLat, userLng]);
+                        } else {
+                            userMarker = L.marker([userLat, userLng], {
+                                icon: L.divIcon({
+                                    className: 'user-gps-pin',
+                                    html: '<div style="background:#2563eb; color:white; border:2px solid white; border-radius:50%; width:16px; height:16px; box-shadow:0 0 8px rgba(0,0,0,0.5);"></div>',
+                                    iconSize: [16, 16],
+                                    iconAnchor: [8, 8]
+                                })
+                            }).addTo(map).bindPopup("📍 ตำแหน่งปัจจุบันของคุณ");
+                        }
+
+                        // อัปเดตพิกัดเริ่มต้นสำหรับฟอร์มรายงาน
+                        document.getElementById('reportLat').value = userLat;
+                        document.getElementById('reportLng').value = userLng;
+                        document.getElementById('reportCoordsDisplay').value = `พิกัด GPS: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
+                    },
+                    (error) => {
+                        console.warn("ไม่สามารถดึงตำแหน่ง GPS ได้: ", error.message);
+                        // ถ้าดึงไม่ได้ ให้ใช้ขอบเขตสมุทรปราการเป็นค่าสำรอง
+                        map.fitBounds(provinceBoundary.getBounds());
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            }
+        }
+
+        // เรียกใช้งานทันทีเมื่อโหลดหน้า
+        initUserGPS();
+
+        // ปุ่มกดบังคับซูมไปที่พิกัด GPS ปัจจุบัน
+        function panToUserGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    map.setView([userLat, userLng], 15);
+                    alert("🎯 ซูมไปยังตำแหน่ง GPS ปัจจุบันของคุณแล้ว");
+                }, () => {
+                    alert("⚠️ กรุณาเปิดอนุญาตการเข้าถึงตำแหน่ง (GPS) ในบราว์เซอร์ของคุณ");
+                });
+            } else {
+                alert("❌ เบราว์เซอร์ของคุณไม่รองรับระบบระบุตำแหน่ง GPS");
+            }
+        }
 
         let samutPrakanPoints = [
             { id: 1, name: "ปากน้ำ ซอย 1", district: "อำเภอเมืองสมุทรปราการ", subdistrict: "ปากน้ำ", level: 1, text: "น้ำแห้ง / ต่ำกว่าข้อเท้า", lat: 13.5990, lng: 100.5990, time: "14:20 น.", image: "" },
@@ -463,7 +526,6 @@
         const levelNames = { 1: 'น้ำแห้งปกติ', 2: 'น้ำระดับเข่า', 3: 'น้ำระดับเอว', 4: 'น้ำระดับอก', 5: 'น้ำเกินอก', 6: 'น้ำมิดหัว' };
         let markers = [];
 
-        // ระบบเสียงพูด (Text-to-Speech)
         function speakWaterStatus(textToSpeak) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -496,7 +558,6 @@
                 const popupHtml = `<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>ระดับ: ${levelNames[item.level]}<br>เวลา: ${item.time}`;
                 circle.bindPopup(popupHtml);
 
-                // คลิกที่หมุดบนแผนที่ -> พูดเสียงอัตโนมัติ
                 circle.on('click', () => {
                     const speechText = `สถานที่ ${item.name}, อำเภอ ${item.district}, สถานการณ์: ${item.text}, ระดับน้ำ: ${levelNames[item.level]}`;
                     speakWaterStatus(speechText);
@@ -529,9 +590,7 @@
 
         renderMapAndFeed(samutPrakanPoints);
 
-        // คลิก Feed แล้วซูมไปที่หมุด พร้อมออกเสียง
         function focusOnItem(lat, lng, name, district, text, levelName) {
-            // พับย่อ Sidebar บนมือถืออัตโนมัติเพื่อให้เห็นแผนที่ชัดเจน
             if (window.innerWidth <= 768) {
                 toggleMobileView();
             }
@@ -556,7 +615,6 @@
             renderMapAndFeed(samutPrakanPoints);
         }
 
-        // ฟังก์ชันสลับ/พับย่อมุมมองบนมือถือ (แผนที่เต็มจอ <-> พับเปิด Feed รายงานสด)
         let isFeedVisible = false;
         function toggleMobileView() {
             const sidebar = document.getElementById('sidebar');
@@ -572,9 +630,6 @@
             }
         }
 
-        // จัดการ Modal แจ้งเหตุและเลือกพิกัดด้วยการเลื่อนแผนที่
-        let selectedLat = 13.5990;
-        let selectedLng = 100.5990;
         let pickerMap = null;
 
         function openReportModal() { 
@@ -593,16 +648,30 @@
             document.getElementById('locationPickerModal').style.display = 'flex';
             setTimeout(() => {
                 if (!pickerMap) {
-                    pickerMap = L.map('pickerMap').setView([selectedLat, selectedLng], 13);
+                    pickerMap = L.map('pickerMap').setView([userLat, userLng], 15);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
                         attribution: '© OpenStreetMap'
                     }).addTo(pickerMap);
                 } else {
                     pickerMap.invalidateSize();
-                    pickerMap.setView([selectedLat, selectedLng], 13);
+                    pickerMap.setView([userLat, userLng], 15);
                 }
             }, 250);
+        }
+
+        function pickerCenterToGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    if (pickerMap) {
+                        pickerMap.setView([userLat, userLng], 16);
+                    }
+                }, () => {
+                    alert("ไม่สามารถดึงตำแหน่ง GPS ได้");
+                });
+            }
         }
 
         function closeLocationPicker() {
@@ -613,11 +682,11 @@
         function confirmLocationSelection() {
             if (pickerMap) {
                 const center = pickerMap.getCenter();
-                selectedLat = center.lat;
-                selectedLng = center.lng;
-                document.getElementById('reportLat').value = selectedLat;
-                document.getElementById('reportLng').value = selectedLng;
-                document.getElementById('reportCoordsDisplay').value = `พิกัด: ${selectedLat.toFixed(4)}, ${selectedLng.toFixed(4)}`;
+                userLat = center.lat;
+                userLng = center.lng;
+                document.getElementById('reportLat').value = userLat;
+                document.getElementById('reportLng').value = userLng;
+                document.getElementById('reportCoordsDisplay').value = `พิกัด: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
             }
             document.getElementById('locationPickerModal').style.display = 'none';
             document.getElementById('reportModal').style.display = 'flex';
@@ -638,8 +707,8 @@
                 return;
             }
 
-            const finalLat = latInput ? parseFloat(latInput) : (13.58 + Math.random() * 0.08);
-            const finalLng = lngInput ? parseFloat(lngInput) : (100.55 + Math.random() * 0.12);
+            const finalLat = latInput ? parseFloat(latInput) : userLat;
+            const finalLng = lngInput ? parseFloat(lngInput) : userLng;
 
             let imageUrl = '';
             if (imageInput.files && imageInput.files[0]) {
@@ -666,7 +735,7 @@
             
             renderMapAndFeed(samutPrakanPoints);
             closeReportModal();
-            alert('✅ ส่งรายงานสำเร็จ! ข้อมูลถูกอัปเดตลงแผนที่และ Feed ทันที');
+            alert('✅ ส่งรายงานสำเร็จ! พิกัดถูกดึงและอัปเดตลงแผนที่เรียบร้อย');
         }
     </script>
 </body>
