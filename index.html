@@ -233,54 +233,23 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
-        .mobile-view-toggle {
-            display: none;
-        }
+        .mobile-view-toggle { display: none; }
 
         @media (max-width: 768px) {
-            .main-layout {
-                flex-direction: column;
-            }
+            .main-layout { flex-direction: column; }
             .sidebar {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 45vh;
-                border-left: none;
-                border-top: 2px solid #cbd5e1;
-                border-radius: 16px 16px 0 0;
-                box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
-                transform: translateY(calc(100% - 45px));
-                transition: transform 0.3s ease-in-out;
-                background: white;
-                z-index: 2500;
-                padding-bottom: 60px;
+                position: absolute; bottom: 0; left: 0; width: 100%; height: 45vh;
+                border-left: none; border-top: 2px solid #cbd5e1; border-radius: 16px 16px 0 0;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.15); transform: translateY(calc(100% - 45px));
+                transition: transform 0.3s ease-in-out; background: white; z-index: 2500; padding-bottom: 60px;
             }
-            .sidebar.active {
-                transform: translateY(0);
-            }
-            #map {
-                width: 100%;
-                height: 100%;
-            }
+            .sidebar.active { transform: translateY(0); }
+            #map { width: 100%; height: 100%; }
             .mobile-view-toggle {
-                display: flex;
-                position: fixed;
-                bottom: 15px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: var(--primary);
-                color: white;
-                padding: 8px 20px;
-                border-radius: 30px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                z-index: 2600;
-                cursor: pointer;
-                align-items: center;
-                gap: 6px;
+                display: flex; position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+                background: var(--primary); color: white; padding: 8px 20px; border-radius: 30px;
+                font-size: 0.8rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 2600; cursor: pointer; align-items: center; gap: 6px;
             }
         }
     </style>
@@ -344,7 +313,6 @@
         </div>
     </div>
 
-    <!-- ปุ่มสลับมุมมองเฉพาะมือถือ -->
     <div class="mobile-view-toggle" id="mobileToggleBtn" onclick="toggleMobileView()">
         <span id="mobileToggleIcon">📋 ดูรายการรายงานสด</span>
     </div>
@@ -425,49 +393,54 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const map = L.map('map').setView([13.599, 100.599], 11);
+    
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // เชื่อมต่อฐานข้อมูล Firebase ของเอิร์นนี่ (samutprakarn-water) เรียบร้อยแล้ว
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-เชื่อมต่อสำเร็จแล้ว",
+            authDomain: "samutprakarn-water.firebaseapp.com",
+            databaseURL: "https://samutprakarn-water-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "samutprakarn-water",
+            storageBucket: "samutprakarn-water.appspot.com",
+            messagingSenderId: "1028723984631",
+            appId: "1:1028723984631:web:placeholder"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const map = L.map('map').setView([13.599, 100.599], 11);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 🔴 ขอบเขตจังหวัดสมุทรปราการ (เส้นทึบสีแดงหนา 4)
         const samutPrakanBoundaryCoords = [
-            [13.680, 100.520],
-            [13.670, 100.600],
-            [13.640, 100.750],
-            [13.580, 100.860],
-            [13.500, 100.820],
-            [13.520, 100.580],
-            [13.600, 100.500]
+            [13.680, 100.520], [13.670, 100.600], [13.640, 100.750],
+            [13.580, 100.860], [13.500, 100.820], [13.520, 100.580], [13.600, 100.500]
         ];
 
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#dc2626',
-            weight: 4,
-            dashArray: null,
-            fillColor: '#ef4444',
-            fillOpacity: 0.08        
+            color: '#dc2626', weight: 4, fillColor: '#ef4444', fillOpacity: 0.08        
         }).addTo(map);
 
         let userLat = 13.5990;
         let userLng = 100.5990;
         let userMarker = null;
+        let allReportsData = [];
 
-        // ฟังก์ชันดึง GPS อัตโนมัติเมื่อเปิดหน้าเว็บ
         function initUserGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         userLat = position.coords.latitude;
                         userLng = position.coords.longitude;
-                        
-                        // ซูมแผนที่ไปที่ตำแหน่งปัจจุบันของผู้ใช้งานทันที
                         map.setView([userLat, userLng], 14);
 
-                        // สร้างหมุดแสดงตำแหน่งผู้ใช้งาน
                         if (userMarker) {
                             userMarker.setLatLng([userLat, userLng]);
                         } else {
@@ -475,52 +448,33 @@
                                 icon: L.divIcon({
                                     className: 'user-gps-pin',
                                     html: '<div style="background:#2563eb; color:white; border:2px solid white; border-radius:50%; width:16px; height:16px; box-shadow:0 0 8px rgba(0,0,0,0.5);"></div>',
-                                    iconSize: [16, 16],
-                                    iconAnchor: [8, 8]
+                                    iconSize: [16, 16], iconAnchor: [8, 8]
                                 })
                             }).addTo(map).bindPopup("📍 ตำแหน่งปัจจุบันของคุณ");
                         }
-
-                        // อัปเดตพิกัดเริ่มต้นสำหรับฟอร์มรายงาน
                         document.getElementById('reportLat').value = userLat;
                         document.getElementById('reportLng').value = userLng;
                         document.getElementById('reportCoordsDisplay').value = `พิกัด GPS: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
                     },
                     (error) => {
-                        console.warn("ไม่สามารถดึงตำแหน่ง GPS ได้: ", error.message);
-                        // ถ้าดึงไม่ได้ ให้ใช้ขอบเขตสมุทรปราการเป็นค่าสำรอง
                         map.fitBounds(provinceBoundary.getBounds());
                     },
                     { enableHighAccuracy: true, timeout: 10000 }
                 );
             }
         }
-
-        // เรียกใช้งานทันทีเมื่อโหลดหน้า
         initUserGPS();
 
-        // ปุ่มกดบังคับซูมไปที่พิกัด GPS ปัจจุบัน
-        function panToUserGPS() {
+        window.panToUserGPS = function() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     userLat = position.coords.latitude;
                     userLng = position.coords.longitude;
                     map.setView([userLat, userLng], 15);
                     alert("🎯 ซูมไปยังตำแหน่ง GPS ปัจจุบันของคุณแล้ว");
-                }, () => {
-                    alert("⚠️ กรุณาเปิดอนุญาตการเข้าถึงตำแหน่ง (GPS) ในบราว์เซอร์ของคุณ");
-                });
-            } else {
-                alert("❌ เบราว์เซอร์ของคุณไม่รองรับระบบระบุตำแหน่ง GPS");
+                }, () => { alert("⚠️ กรุณาเปิดอนุญาตการเข้าถึงตำแหน่ง (GPS)"); });
             }
         }
-
-        let samutPrakanPoints = [
-            { id: 1, name: "ปากน้ำ ซอย 1", district: "อำเภอเมืองสมุทรปราการ", subdistrict: "ปากน้ำ", level: 1, text: "น้ำแห้ง / ต่ำกว่าข้อเท้า", lat: 13.5990, lng: 100.5990, time: "14:20 น.", image: "" },
-            { id: 2, name: "ชุมชนท้ายบ้าน", district: "อำเภอเมืองสมุทรปราการ", subdistrict: "ปากน้ำ", level: 2, text: "น้ำระดับเข่า รถเล็กระวัง", lat: 13.5850, lng: 100.6100, time: "14:25 น.", image: "" },
-            { id: 3, name: "ถนนสุขสวัสดิ์ พระประแดง", district: "อำเภอพระประแดง", subdistrict: "สำโรงเหนือ", level: 3, text: "น้ำระดับเอว การจราจรติดขัด", lat: 13.6600, lng: 100.5300, time: "14:10 น.", image: "" },
-            { id: 6, name: "เคหะบางพลี", district: "อำเภอบางพลี", subdistrict: "บางพลีใหญ่", level: 2, text: "น้ำระดับเข่า ท่วมขังรอการระบาย", lat: 13.6110, lng: 100.7200, time: "14:28 น.", image: "" }
-        ];
 
         const colors = { 1: '#10b981', 2: '#3b82f6', 3: '#f59e0b', 4: '#f97316', 5: '#ef4444', 6: '#7c3aed' };
         const levelNames = { 1: 'น้ำแห้งปกติ', 2: 'น้ำระดับเข่า', 3: 'น้ำระดับเอว', 4: 'น้ำระดับอก', 5: 'น้ำเกินอก', 6: 'น้ำมิดหัว' };
@@ -531,7 +485,6 @@
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
                 utterance.lang = 'th-TH';
-                utterance.rate = 1.0;
                 window.speechSynthesis.speak(utterance);
             }
         }
@@ -545,22 +498,18 @@
             let counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
 
             data.forEach(item => {
-                counts[item.level]++;
+                if (item.level >= 1 && item.level <= 6) counts[item.level]++;
                 
                 const circle = L.circleMarker([item.lat, item.lng], {
                     radius: 10,
-                    fillColor: colors[item.level],
-                    color: '#fff',
-                    weight: 2,
-                    fillOpacity: 0.85
+                    fillColor: colors[item.level] || '#3b82f6',
+                    color: '#fff', weight: 2, fillOpacity: 0.85
                 }).addTo(map);
 
                 const popupHtml = `<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>ระดับ: ${levelNames[item.level]}<br>เวลา: ${item.time}`;
                 circle.bindPopup(popupHtml);
-
                 circle.on('click', () => {
-                    const speechText = `สถานที่ ${item.name}, อำเภอ ${item.district}, สถานการณ์: ${item.text}, ระดับน้ำ: ${levelNames[item.level]}`;
-                    speakWaterStatus(speechText);
+                    speakWaterStatus(`สถานที่ ${item.name}, อำเภอ ${item.district}, สถานการณ์: ${item.text}`);
                 });
 
                 markers.push(circle);
@@ -568,7 +517,7 @@
                 let imgTag = item.image ? `<img src="${item.image}" class="feed-img">` : '';
 
                 feedContainer.innerHTML += `
-                    <div class="feed-item" style="border-left-color: ${colors[item.level]}; cursor: pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.name}', '${item.district}', '${item.text}', '${levelNames[item.level]}')">
+                    <div class="feed-item" style="border-left-color: ${colors[item.level]}; cursor: pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.name}', '${item.district}', '${item.text}')">
                         <div style="display:flex; justify-content:space-between;">
                             <b>📍 ${item.name}</b>
                             <span class="feed-time">${item.time}</span>
@@ -588,35 +537,36 @@
             document.getElementById('cnt6').innerText = counts[6];
         }
 
-        renderMapAndFeed(samutPrakanPoints);
-
-        function focusOnItem(lat, lng, name, district, text, levelName) {
-            if (window.innerWidth <= 768) {
-                toggleMobileView();
+        // ดึงข้อมูล Real-time จาก Firebase Database ทันทีที่มีการเปลี่ยนแปลง
+        const reportsRef = ref(db, 'flood_reports');
+        onValue(reportsRef, (snapshot) => {
+            const dbData = snapshot.val();
+            allReportsData = [];
+            if (dbData) {
+                Object.keys(dbData).forEach(key => {
+                    allReportsData.unshift({ id: key, ...dbData[key] });
+                });
             }
+            renderMapAndFeed(allReportsData);
+        });
+
+        window.focusOnItem = function(lat, lng, name, district, text) {
+            if (window.innerWidth <= 768) { toggleMobileView(); }
             map.setView([lat, lng], 15);
-            speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, สถานการณ์: ${text}, ระดับน้ำ: ${levelName}`);
+            speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, สถานการณ์: ${text}`);
         }
 
-        function filterData() {
+        window.filterData = function() {
             const dist = document.getElementById('filterDistrict').value;
             const sub = document.getElementById('filterSubdistrict').value;
-            
-            let filtered = samutPrakanPoints;
+            let filtered = allReportsData;
             if (dist) filtered = filtered.filter(i => i.district === dist);
-            if (sub) filtered = filtered.filter(i => i.subdistrict.includes(sub));
-
+            if (sub) filtered = filtered.filter(i => i.subdistrict && i.subdistrict.includes(sub));
             renderMapAndFeed(filtered);
         }
 
-        function resetFilters() {
-            document.getElementById('filterDistrict').value = "";
-            document.getElementById('filterSubdistrict').value = "";
-            renderMapAndFeed(samutPrakanPoints);
-        }
-
         let isFeedVisible = false;
-        function toggleMobileView() {
+        window.toggleMobileView = function() {
             const sidebar = document.getElementById('sidebar');
             const toggleIcon = document.getElementById('mobileToggleIcon');
             isFeedVisible = !isFeedVisible;
@@ -631,28 +581,19 @@
         }
 
         let pickerMap = null;
-
-        function openReportModal() { 
-            document.getElementById('reportModal').style.display = 'flex'; 
-        }
-        function closeReportModal() { 
-            document.getElementById('reportModal').style.display = 'none'; 
-        }
-
-        function openLocationPickerFromModal() {
+        window.openReportModal = function() { document.getElementById('reportModal').style.display = 'flex'; }
+        window.closeReportModal = function() { document.getElementById('reportModal').style.display = 'none'; }
+        window.openLocationPickerFromModal = function() {
             document.getElementById('reportModal').style.display = 'none';
             openLocationPicker();
         }
 
-        function openLocationPicker() {
+        window.openLocationPicker = function() {
             document.getElementById('locationPickerModal').style.display = 'flex';
             setTimeout(() => {
                 if (!pickerMap) {
                     pickerMap = L.map('pickerMap').setView([userLat, userLng], 15);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© OpenStreetMap'
-                    }).addTo(pickerMap);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pickerMap);
                 } else {
                     pickerMap.invalidateSize();
                     pickerMap.setView([userLat, userLng], 15);
@@ -660,26 +601,20 @@
             }, 250);
         }
 
-        function pickerCenterToGPS() {
+        window.pickerCenterToGPS = function() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    userLat = position.coords.latitude;
-                    userLng = position.coords.longitude;
-                    if (pickerMap) {
-                        pickerMap.setView([userLat, userLng], 16);
-                    }
-                }, () => {
-                    alert("ไม่สามารถดึงตำแหน่ง GPS ได้");
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    pickerMap.setView([pos.coords.latitude, pos.coords.longitude], 16);
                 });
             }
         }
 
-        function closeLocationPicker() {
+        window.closeLocationPicker = function() {
             document.getElementById('locationPickerModal').style.display = 'none';
             document.getElementById('reportModal').style.display = 'flex';
         }
 
-        function confirmLocationSelection() {
+        window.confirmLocationSelection = function() {
             if (pickerMap) {
                 const center = pickerMap.getCenter();
                 userLat = center.lat;
@@ -692,31 +627,25 @@
             document.getElementById('reportModal').style.display = 'flex';
         }
 
-        function submitReport() {
+        window.submitReport = function() {
             const name = document.getElementById('reportName').value;
             const district = document.getElementById('reportDistrict').value;
             const subdistrict = document.getElementById('reportSubdistrict').value || 'ทั่วไป';
             const level = parseInt(document.getElementById('reportLevel').value);
             const text = document.getElementById('reportText').value;
-            const imageInput = document.getElementById('reportImage');
             const latInput = document.getElementById('reportLat').value;
             const lngInput = document.getElementById('reportLng').value;
 
-            if (!name) {
-                alert('กรุณากรอกชื่อสถานที่หรือจุดสังเกต');
-                return;
-            }
+            if (!name) { alert('กรุณากรอกชื่อสถานที่หรือจุดสังเกต'); return; }
 
             const finalLat = latInput ? parseFloat(latInput) : userLat;
             const finalLng = lngInput ? parseFloat(lngInput) : userLng;
+            
+            const now = new Date();
+            const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} น.`;
 
-            let imageUrl = '';
-            if (imageInput.files && imageInput.files[0]) {
-                imageUrl = URL.createObjectURL(imageInput.files[0]);
-            }
-
-            const newEntry = {
-                id: samutPrakanPoints.length + 1,
+            // บันทึกข้อมูลลง Firebase Database
+            push(reportsRef, {
                 name: name,
                 district: district,
                 subdistrict: subdistrict,
@@ -724,18 +653,14 @@
                 text: text || 'รายงานสถานการณ์น้ำ',
                 lat: finalLat,
                 lng: finalLng,
-                time: "เมื่อสักครู่",
-                image: imageUrl
-            };
-
-            samutPrakanPoints.unshift(newEntry);
-            
-            document.getElementById('filterDistrict').value = "";
-            document.getElementById('filterSubdistrict').value = "";
-            
-            renderMapAndFeed(samutPrakanPoints);
-            closeReportModal();
-            alert('✅ ส่งรายงานสำเร็จ! พิกัดถูกดึงและอัปเดตลงแผนที่เรียบร้อย');
+                time: timeString,
+                image: ""
+            }).then(() => {
+                closeReportModal();
+                alert('✅ ส่งรายงานสำเร็จ! บันทึกลงฐานข้อมูลและอัปเดตเรียบร้อย');
+            }).catch((error) => {
+                alert('❌ เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+            });
         }
     </script>
 </body>
