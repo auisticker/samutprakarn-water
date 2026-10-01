@@ -112,6 +112,7 @@
         }
         .btn-action.secondary { background: white; color: var(--primary); border: 1px solid #cbd5e1; }
         .btn-action.report-btn { background: #059669; color: white; }
+        .btn-action.small-btn { padding: 4px 8px; font-size: 0.75rem; flex-grow: 0; }
         
         .filters-row {
             background: white;
@@ -148,6 +149,7 @@
             padding: 12px;
             overflow-y: auto;
             flex-shrink: 0;
+            transition: all 0.3s ease;
         }
         .feed-item {
             background: white;
@@ -203,10 +205,69 @@
             width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.85rem;
         }
 
+        /* Modal เลือกพิกัดบนแผนที่ */
+        #locationPickerModal .modal-content {
+            width: 95%;
+            max-width: 500px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        #pickerMap {
+            flex-grow: 1;
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        /* หมุดล็อคตรงกลางแผนที่สำหรับเลือกพิกัด */
+        .map-center-pin {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            font-size: 2rem;
+            z-index: 1000;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        /* โหมดขยายแผนที่เต็มจอในมือถือ */
         @media (max-width: 768px) {
-            .main-layout { flex-direction: column-reverse; }
-            .sidebar { width: 100%; height: 35vh; }
-            #map { height: 65vh; }
+            .main-layout { flex-direction: column-reverse; position: relative; }
+            .sidebar { 
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%; 
+                height: 35vh; 
+                z-index: 999;
+                box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
+                transition: transform 0.3s ease;
+            }
+            .sidebar.minimized {
+                transform: translateY(calc(100% - 40px));
+            }
+            #map { height: 100vh; }
+            .mobile-map-toggle {
+                display: flex !important;
+            }
+        }
+        .mobile-map-toggle {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 6px;
         }
     </style>
 </head>
@@ -238,7 +299,7 @@
 
     <div class="control-bar">
         <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
-        <button class="btn-action" onclick="getGPSLocation()">📍 พิกัดฉัน</button>
+        <button class="btn-action" onclick="openLocationPicker()">📍 เลือกพิกัด/ถนน</button>
         <button class="btn-action secondary" onclick="resetFilters()">🔄 รีเซ็ต</button>
     </div>
 
@@ -263,8 +324,12 @@
 
     <div class="main-layout">
         <div id="map"></div>
-        <div class="sidebar">
-            <h3 style="margin-top:0; font-size: 0.9rem; color: var(--primary);">📋 รายงานสดจากประชาชน</h3>
+        <div class="sidebar" id="sidebar">
+            <div class="mobile-map-toggle" onclick="toggleSidebar()">
+                <span>📋 รายงานสดจากประชาชน (แตะเพื่อย่อ/ขยาย)</span>
+                <span id="toggleIcon">▼</span>
+            </div>
+            <h3 style="margin-top:0; font-size: 0.9rem; color: var(--primary);" class="desktop-feed-title">📋 รายงานสดจากประชาชน</h3>
             <div id="feedList"></div>
         </div>
     </div>
@@ -308,12 +373,34 @@
                 <textarea id="reportText" rows="2" placeholder="รายละเอียดเพิ่มเติม"></textarea>
             </div>
             <div class="form-group">
+                <label>พิกัดที่เลือก:</label>
+                <input type="text" id="reportCoordsDisplay" readonly value="ใช้พิกัดสุ่มอัตโนมัติ (หรือกดเลือกพิกัดด้านล่าง)" style="background:#f1f5f9; font-size:0.75rem;">
+                <input type="hidden" id="reportLat">
+                <input type="hidden" id="reportLng">
+                <button class="btn-action secondary small-btn" style="width:100%; margin-top:4px;" onclick="openLocationPickerFromModal()">🗺️ เลือกตำแหน่งจากแผนที่</button>
+            </div>
+            <div class="form-group">
                 <label>รูปถ่าย (ถ้ามี):</label>
                 <input type="file" id="reportImage" accept="image/*">
             </div>
             <div style="display: flex; gap: 8px; margin-top: 12px;">
                 <button class="btn-action report-btn" onclick="submitReport()">📤 ส่งรายงาน</button>
                 <button class="btn-action secondary" onclick="closeReportModal()">❌ ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal เลือกพิกัดแบบเลื่อนแผนที่ -->
+    <div id="locationPickerModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color: var(--primary);">📍 เลื่อนแผนที่เพื่อเลือกตำแหน่ง</h3>
+            <p style="font-size:0.75rem; color:#64748b; margin:0 0 8px 0;">เลื่อนแผนที่ให้หมุดสีแดงอยู่ตรงจุดที่ต้องการ แล้วกด "ยืนยันตำแหน่ง"</p>
+            <div id="pickerMap">
+                <div class="map-center-pin">📍</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-action report-btn" onclick="confirmLocationSelection()">✅ ยืนยันตำแหน่งนี้</button>
+                <button class="btn-action secondary" onclick="closeLocationPicker()">❌ ยกเลิก</button>
             </div>
         </div>
     </div>
@@ -328,7 +415,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 🚨 กำหนดเส้นขอบเขตจังหวัดสมุทรปราการ (สีแดงชัดเจน)
+        // 🔴 ขอบเขตจังหวัดสมุทรปราการ (เส้นทึบสีแดงหนา)
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520],
             [13.670, 100.600],
@@ -340,28 +427,12 @@
         ];
 
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#dc2626',       // 🔴 เส้นขอบสีแดง
-            weight: 3,              
-            dashArray: '5, 5',      
+            color: '#dc2626',       // เส้นทึบสีแดง
+            weight: 4,              // ความหนา
+            dashArray: null,        // เอาเส้นประออก
             fillColor: '#ef4444',   
             fillOpacity: 0.08       
         }).addTo(map);
-
-        // 🟣 เพิ่มเส้นแบ่งเขตอำเภอภายในจังหวัดสมุทรปราการ
-        const districtLines = [
-            [[13.670, 100.550], [13.550, 100.600]], // แบ่ง อ.เมือง / พระประแดง / พระสมุทรเจดีย์
-            [[13.640, 100.650], [13.550, 100.720]], // แบ่ง อ.เมือง / บางพลี
-            [[13.620, 100.750], [13.540, 100.820]]  // แบ่ง อ.บางพลี / บางบ่อ / บางเสาธง
-        ];
-
-        districtLines.forEach(coords => {
-            L.polyline(coords, {
-                color: '#8b5cf6',     // เส้นประสีม่วงแบ่งเขตอำเภอ
-                weight: 2,
-                dashArray: '4, 4',
-                opacity: 0.7
-            }).addTo(map);
-        });
 
         map.fitBounds(provinceBoundary.getBounds());
 
@@ -373,7 +444,19 @@
         ];
 
         const colors = { 1: '#10b981', 2: '#3b82f6', 3: '#f59e0b', 4: '#f97316', 5: '#ef4444', 6: '#7c3aed' };
+        const levelNames = { 1: 'น้ำแห้งปกติ', 2: 'น้ำระดับเข่า', 3: 'น้ำระดับเอว', 4: 'น้ำระดับอก', 5: 'น้ำเกินอก', 6: 'น้ำมิดหัว' };
         let markers = [];
+
+        // ฟังก์ชันระบบเสียงพูด (Text-to-Speech)
+        function speakWaterStatus(textToSpeak) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อนเริ่มพูดใหม่
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'th-TH';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
 
         function renderMapAndFeed(data) {
             markers.forEach(m => map.removeLayer(m));
@@ -394,13 +477,21 @@
                     fillOpacity: 0.85
                 }).addTo(map);
 
-                circle.bindPopup(`<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>เวลา: ${item.time}`);
+                const popupHtml = `<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>ระดับ: ${levelNames[item.level]}<br>เวลา: ${item.time}`;
+                circle.bindPopup(popupHtml);
+
+                // เมื่อคลิกที่หมุดบนแผนที่ ให้พูดรายละเอียด
+                circle.on('click', () => {
+                    const speechText = `สถานที่ ${item.name}, อำเภอ ${item.district}, สถานการณ์: ${item.text}, ระดับน้ำ: ${levelNames[item.level]}`;
+                    speakWaterStatus(speechText);
+                });
+
                 markers.push(circle);
 
                 let imgTag = item.image ? `<img src="${item.image}" class="feed-img">` : '';
 
                 feedContainer.innerHTML += `
-                    <div class="feed-item" style="border-left-color: ${colors[item.level]};">
+                    <div class="feed-item" style="border-left-color: ${colors[item.level]}; cursor: pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.name}', '${item.district}', '${item.text}', '${levelNames[item.level]}')">
                         <div style="display:flex; justify-content:space-between;">
                             <b>📍 ${item.name}</b>
                             <span class="feed-time">${item.time}</span>
@@ -422,6 +513,12 @@
 
         renderMapAndFeed(samutPrakanPoints);
 
+        // คลิกที่ Feed แล้วซูมไปที่หมุด พร้อมออกเสียง
+        function focusOnItem(lat, lng, name, district, text, levelName) {
+            map.setView([lat, lng], 15);
+            speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, สถานการณ์: ${text}, ระดับน้ำ: ${levelName}`);
+        }
+
         function filterData() {
             const dist = document.getElementById('filterDistrict').value;
             const sub = document.getElementById('filterSubdistrict').value;
@@ -439,8 +536,71 @@
             renderMapAndFeed(samutPrakanPoints);
         }
 
-        function openReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
-        function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+        // ควบคุมการย่อ/ขยาย Sidebar บนมือถือ
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+            sidebar.classList.toggle('minimized');
+            if (sidebar.classList.contains('minimized')) {
+                toggleIcon.innerText = '▲';
+            } else {
+                toggleIcon.innerText = '▼';
+            }
+        }
+
+        // จัดการ Modal แจ้งเหตุและเลือกพิกัด
+        let selectedLat = 13.5990;
+        let selectedLng = 100.5990;
+        let pickerMap = null;
+
+        function openReportModal() { 
+            document.getElementById('reportModal').style.display = 'flex'; 
+        }
+        function closeReportModal() { 
+            document.getElementById('reportModal').style.display = 'none'; 
+        }
+
+        function openLocationPickerFromModal() {
+            document.getElementById('reportModal').style.display = 'none';
+            openLocationPicker();
+        }
+
+        function openLocationPicker() {
+            document.getElementById('locationPickerModal').style.display = 'flex';
+            setTimeout(() => {
+                if (!pickerMap) {
+                    pickerMap = L.map('pickerMap').setView([selectedLat, selectedLng], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(pickerMap);
+                } else {
+                    pickerMap.invalidateSize();
+                    pickerMap.setView([selectedLat, selectedLng], 13);
+                }
+            }, 200);
+        }
+
+        function closeLocationPicker() {
+            document.getElementById('locationPickerModal').style.display = 'none';
+            // ถ้ากำลังเปิดฟอร์มแจ้งรายงานอยู่ ให้เปิดกลับมา
+            if (document.getElementById('reportName').value !== '' || document.getElementById('reportModal').style.display === 'none') {
+                // เช็คว่าควรกลับมาหน้าฟอร์มรายงานไหม
+            }
+        }
+
+        function confirmLocationSelection() {
+            if (pickerMap) {
+                const center = pickerMap.getCenter();
+                selectedLat = center.lat;
+                selectedLng = center.lng;
+                document.getElementById('reportLat').value = selectedLat;
+                document.getElementById('reportLng').value = selectedLng;
+                document.getElementById('reportCoordsDisplay').value = `พิกัด: ${selectedLat.toFixed(4)}, ${selectedLng.toFixed(4)}`;
+            }
+            document.getElementById('locationPickerModal').style.display = 'none';
+            document.getElementById('reportModal').style.display = 'flex';
+        }
 
         function submitReport() {
             const name = document.getElementById('reportName').value;
@@ -449,14 +609,16 @@
             const level = parseInt(document.getElementById('reportLevel').value);
             const text = document.getElementById('reportText').value;
             const imageInput = document.getElementById('reportImage');
+            const latInput = document.getElementById('reportLat').value;
+            const lngInput = document.getElementById('reportLng').value;
 
             if (!name) {
                 alert('กรุณากรอกชื่อสถานที่หรือจุดสังเกต');
                 return;
             }
 
-            const randomLat = 13.58 + Math.random() * 0.08;
-            const randomLng = 100.55 + Math.random() * 0.12;
+            const finalLat = latInput ? parseFloat(latInput) : (13.58 + Math.random() * 0.08);
+            const finalLng = lngInput ? parseFloat(lngInput) : (100.55 + Math.random() * 0.12);
 
             let imageUrl = '';
             if (imageInput.files && imageInput.files[0]) {
@@ -470,8 +632,8 @@
                 subdistrict: subdistrict,
                 level: level,
                 text: text || 'รายงานสถานการณ์น้ำ',
-                lat: randomLat,
-                lng: randomLng,
+                lat: finalLat,
+                lng: finalLng,
                 time: "เมื่อสักครู่",
                 image: imageUrl
             };
@@ -484,20 +646,6 @@
             renderMapAndFeed(samutPrakanPoints);
             closeReportModal();
             alert('✅ ส่งรายงานสำเร็จ! ข้อมูลถูกอัปเดตลงแผนที่และ Feed ทันที');
-        }
-
-        function getGPSLocation() {
-            if (!navigator.geolocation) {
-                alert("อุปกรณ์ไม่รองรับ GPS");
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(pos => {
-                map.setView([pos.coords.latitude, pos.coords.longitude], 14);
-                L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
-                    .bindPopup("📍 ตำแหน่งปัจจุบันของคุณ").openPopup();
-            }, () => {
-                alert("ไม่สามารถดึงพิกัด GPS ได้");
-            });
         }
     </script>
 </body>
