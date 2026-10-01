@@ -287,7 +287,7 @@
     </div>
 
     <div class="filters-row">
-        <select id="filterDistrict" onchange="filterData()">
+        <select id="filterDistrict" onchange="onFilterDistrictChange()">
             <option value="">ทุกอำเภอ</option>
             <option value="อำเภอเมืองสมุทรปราการ">อ.เมืองสมุทรปราการ</option>
             <option value="อำเภอพระประแดง">อ.พระประแดง</option>
@@ -298,10 +298,6 @@
         </select>
         <select id="filterSubdistrict" onchange="filterData()">
             <option value="">ทุกตำบล</option>
-            <option value="ปากน้ำ">ต.ปากน้ำ</option>
-            <option value="บางปู">ต.บางปู</option>
-            <option value="สำโรงเหนือ">ต.สำโรงเหนือ</option>
-            <option value="บางพลีใหญ่">ต.บางพลีใหญ่</option>
         </select>
     </div>
 
@@ -327,7 +323,7 @@
             </div>
             <div class="form-group">
                 <label>อำเภอ:</label>
-                <select id="reportDistrict">
+                <select id="reportDistrict" onchange="onReportDistrictChange()">
                     <option value="อำเภอเมืองสมุทรปราการ">อำเภอเมืองสมุทรปราการ</option>
                     <option value="อำเภอพระประแดง">อำเภอพระประแดง</option>
                     <option value="อำเภอพระสมุทรเจดีย์">อำเภอพระสมุทรเจดีย์</option>
@@ -338,7 +334,9 @@
             </div>
             <div class="form-group">
                 <label>ตำบล:</label>
-                <input type="text" id="reportSubdistrict" placeholder="เช่น บางพลีใหญ่">
+                <select id="reportSubdistrict">
+                    <!-- โหลดตำบลอัตโนมัติ -->
+                </select>
             </div>
             <div class="form-group">
                 <label>ระดับน้ำ:</label>
@@ -399,7 +397,55 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // เชื่อมต่อฐานข้อมูล Firebase ของเอิร์นนี่ (samutprakarn-water) เรียบร้อยแล้ว
+        // ข้อมูลตำบลในจังหวัดสมุทรปราการแยกตามอำเภอ
+        const subdistrictsData = {
+            "อำเภอเมืองสมุทรปราการ": ["ปากน้ำ", "บางปู", "ท้ายบ้าน", "บางปูใหม่", "แพรกษา", "ท้ายบ้านใหม่", "เทพารักษ์", "บางเมือง", "บางโปรง", "สำโรงเหนือ", "บางเมืองใหม่", "SKT"],
+            "อำเภอพระประแดง": ["ตลาด", "บางพึ่ง", "บางจาก", "บางครุ", "บางหัวเสือ", "สำโรง", "ทรงคนอง", "บางยอ", "บางกระสอบ", "บางน้ำผึ้ง"],
+            "อำเภอพระสมุทรเจดีย์": ["แหลมฟ้าผ่า", "นาเกลือ", "บ้านคลองสวน", "ปากคลองบางปลากด", "ในคลองบางปลากด"],
+            "อำเภอบางพลี": ["บางพลีใหญ่", "บางแก้ว", "บางปลา", "บางโฉลง", "ราชาเทวะ", "หนองปรือ"],
+            "อำเภอบางบ่อ": ["บางบ่อ", "คลองด่าน", "คลองนิยมยตรา", "คลองสวน", "บางพลีน้อย", "บางเพรียง", "บ้านระกาศ", "เปร็ง"],
+            "อำเภอบางเสาธง": ["บางเสาธง", "ศีรษะจรเข้ใหญ่", "ศีรษะจรเข้น้อย"]
+        };
+
+        // ฟังก์ชันอัปเดตตัวเลือกตำบลในฟอร์มรายงาน
+        window.onReportDistrictChange = function() {
+            const districtSelect = document.getElementById('reportDistrict');
+            const subdistrictSelect = document.getElementById('reportSubdistrict');
+            const selectedDistrict = districtSelect.value;
+            
+            subdistrictSelect.innerHTML = '';
+            if (subdistrictsData[selectedDistrict]) {
+                subdistrictsData[selectedDistrict].forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subdistrictSelect.appendChild(opt);
+                });
+            }
+        };
+
+        // ฟังก์ชันอัปเดตตัวเลือกตำบลในส่วนกรองข้อมูลด้านบน
+        window.onFilterDistrictChange = function() {
+            const districtSelect = document.getElementById('filterDistrict');
+            const subdistrictSelect = document.getElementById('filterSubdistrict');
+            const selectedDistrict = districtSelect.value;
+            
+            subdistrictSelect.innerHTML = '<option value="">ทุกตำบล</option>';
+            if (selectedDistrict && subdistrictsData[selectedDistrict]) {
+                subdistrictsData[selectedDistrict].forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subdistrictSelect.appendChild(opt);
+                });
+            }
+            filterData();
+        };
+
+        // เรียกใช้งานครั้งแรกเพื่อเติมข้อมูลตำบลตั้งต้น
+        onReportDistrictChange();
+
+        // เชื่อมต่อฐานข้อมูล Firebase (samutprakarn-water)
         const firebaseConfig = {
             apiKey: "AIzaSyD-เชื่อมต่อสำเร็จแล้ว",
             authDomain: "samutprakarn-water.firebaseapp.com",
