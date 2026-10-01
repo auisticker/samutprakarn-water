@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ระบบศูนย์กลางติดตามและแจ้งเตือนภัยพิบัติน้ำท่วม จ.สมุทรปราการ</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -21,7 +21,7 @@
         }
         * { box-sizing: border-box; }
         html, body {
-            height: 100dvh;
+            height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -59,16 +59,16 @@
         }
         .level-bar-container {
             background: white;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-bottom: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
         .color-spectrum {
             display: flex;
-            height: 6px;
+            height: 5px;
             border-radius: 3px;
             overflow: hidden;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .spectrum-item { flex-grow: 1; }
         .stats-grid {
@@ -79,56 +79,55 @@
         }
         .stat-card {
             background: #f1f5f9;
-            padding: 4px 2px;
-            border-radius: 6px;
-            font-size: 0.7rem;
+            padding: 2px;
+            border-radius: 4px;
+            font-size: 0.65rem;
             font-weight: 600;
         }
         .control-bar {
             background: white;
-            padding: 8px 12px;
+            padding: 6px 10px;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             border-bottom: 1px solid #e2e8f0;
-            flex-wrap: wrap;
             flex-shrink: 0;
         }
         .btn-action {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             font-family: 'Prompt', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             flex-grow: 1;
-            justify-content: center;
         }
         .btn-action.secondary { background: white; color: var(--primary); border: 1px solid #cbd5e1; }
         .btn-action.report-btn { background: #059669; color: white; }
-        .btn-action.small-btn { padding: 4px 8px; font-size: 0.75rem; flex-grow: 0; }
-        
+        .btn-action.small-btn { padding: 4px 6px; font-size: 0.7rem; flex-grow: 0; }
+
         .filters-row {
             background: white;
-            padding: 6px 12px;
+            padding: 6px 10px;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             border-bottom: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
         .filters-row select {
             width: 50%;
-            padding: 6px;
+            padding: 5px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             font-family: 'Prompt', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             background: white;
         }
 
@@ -137,30 +136,32 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
         #map {
             flex-grow: 1;
+            width: 100%;
             height: 100%;
         }
         .sidebar {
             width: 380px;
             background: white;
             border-left: 1px solid #e2e8f0;
-            padding: 12px;
+            padding: 10px;
             overflow-y: auto;
             flex-shrink: 0;
-            transition: all 0.3s ease;
+            z-index: 500;
         }
         .feed-item {
             background: white;
             border: 1px solid #e2e8f0;
             border-left: 5px solid #cbd5e1;
-            padding: 10px;
+            padding: 8px;
             border-radius: 6px;
-            margin-bottom: 8px;
-            font-size: 0.8rem;
+            margin-bottom: 6px;
+            font-size: 0.75rem;
         }
-        .feed-time { color: #64748b; font-size: 0.7rem; }
+        .feed-time { color: #64748b; font-size: 0.65rem; }
         .badge-status {
             background: #fef3c7;
             color: #b45309;
@@ -169,23 +170,23 @@
             font-size: 0.65rem;
             font-weight: 600;
             display: inline-block;
-            margin-top: 4px;
+            margin-top: 3px;
         }
         .feed-img {
             width: 100%;
-            max-height: 130px;
+            max-height: 110px;
             object-fit: cover;
             border-radius: 4px;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
-        /* Modal แจ้งเหตุ */
+        /* Modal ทั่วไป */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
-            z-index: 2000;
+            z-index: 3000;
             justify-content: center;
             align-items: center;
         }
@@ -193,81 +194,86 @@
             background: white;
             padding: 16px;
             border-radius: 10px;
-            width: 90%;
+            width: 92%;
             max-width: 400px;
             max-height: 85vh;
             overflow-y: auto;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 3px; font-size: 0.8rem; }
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 2px; font-size: 0.75rem; }
         .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.85rem;
+            width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.8rem;
         }
 
-        /* Modal เลือกพิกัดบนแผนที่ */
+        /* Modal เลือกพิกัด */
         #locationPickerModal .modal-content {
             width: 95%;
             max-width: 500px;
-            height: 80vh;
+            height: 75vh;
             display: flex;
             flex-direction: column;
-            padding: 12px;
+            padding: 10px;
         }
         #pickerMap {
             flex-grow: 1;
             width: 100%;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             position: relative;
         }
-        /* หมุดล็อคตรงกลางแผนที่สำหรับเลือกพิกัด */
         .map-center-pin {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -100%);
             font-size: 2rem;
-            z-index: 1000;
+            z-index: 2000;
             pointer-events: none;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
-        /* โหมดขยายแผนที่เต็มจอในมือถือ */
-        @media (max-width: 768px) {
-            .main-layout { flex-direction: column-reverse; position: relative; }
-            .sidebar { 
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%; 
-                height: 35vh; 
-                z-index: 999;
-                box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
-                border-top-left-radius: 16px;
-                border-top-right-radius: 16px;
-                transition: transform 0.3s ease;
-            }
-            .sidebar.minimized {
-                transform: translateY(calc(100% - 40px));
-            }
-            #map { height: 100vh; }
-            .mobile-map-toggle {
-                display: flex !important;
-            }
-        }
-        .mobile-map-toggle {
+        /* ควบคุมการแสดงผลเฉพาะบนมือถือ */
+        .mobile-view-toggle {
             display: none;
-            justify-content: space-between;
-            align-items: center;
-            background: #e2e8f0;
-            padding: 4px 10px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                position: absolute;
+                top: 0; left: 0; width: 100%; height: 100%;
+                display: none;
+                background: #f8fafc;
+                padding-bottom: 70px;
+            }
+            .sidebar.active {
+                display: block;
+            }
+            #map {
+                width: 100%;
+                height: 100%;
+            }
+            .mobile-view-toggle {
+                display: flex;
+                position: fixed;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--primary);
+                color: white;
+                padding: 8px 20px;
+                border-radius: 30px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 2500;
+                cursor: pointer;
+                align-items: center;
+                gap: 6px;
+            }
         }
     </style>
 </head>
@@ -288,18 +294,18 @@
             <div class="spectrum-item" style="background: var(--level6);"></div>
         </div>
         <div class="stats-grid">
-            <div class="stat-card" style="border-top: 3px solid var(--level1);">แห้ง<br><span id="cnt1">0</span></div>
-            <div class="stat-card" style="border-top: 3px solid var(--level2);">เข่า<br><span id="cnt2">0</span></div>
-            <div class="stat-card" style="border-top: 3px solid var(--level3);">เอว<br><span id="cnt3">0</span></div>
-            <div class="stat-card" style="border-top: 3px solid var(--level4);">อก<br><span id="cnt4">0</span></div>
-            <div class="stat-card" style="border-top: 3px solid var(--level5);">เกินอก<br><span id="cnt5">0</span></div>
-            <div class="stat-card" style="border-top: 3px solid var(--level6);">มิดหัว<br><span id="cnt6">0</span></div>
+            <div class="stat-card" style="border-top: 2px solid var(--level1);">แห้ง<br><span id="cnt1">0</span></div>
+            <div class="stat-card" style="border-top: 2px solid var(--level2);">เข่า<br><span id="cnt2">0</span></div>
+            <div class="stat-card" style="border-top: 2px solid var(--level3);">เอว<br><span id="cnt3">0</span></div>
+            <div class="stat-card" style="border-top: 2px solid var(--level4);">อก<br><span id="cnt4">0</span></div>
+            <div class="stat-card" style="border-top: 2px solid var(--level5);">เกินอก<br><span id="cnt5">0</span></div>
+            <div class="stat-card" style="border-top: 2px solid var(--level6);">มิดหัว<br><span id="cnt6">0</span></div>
         </div>
     </div>
 
     <div class="control-bar">
         <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
-        <button class="btn-action" onclick="openLocationPicker()">📍 เลือกพิกัด/ถนน</button>
+        <button class="btn-action" onclick="openLocationPicker()">📍 เลือกถนน/พิกัด</button>
         <button class="btn-action secondary" onclick="resetFilters()">🔄 รีเซ็ต</button>
     </div>
 
@@ -325,13 +331,14 @@
     <div class="main-layout">
         <div id="map"></div>
         <div class="sidebar" id="sidebar">
-            <div class="mobile-map-toggle" onclick="toggleSidebar()">
-                <span>📋 รายงานสดจากประชาชน (แตะเพื่อย่อ/ขยาย)</span>
-                <span id="toggleIcon">▼</span>
-            </div>
-            <h3 style="margin-top:0; font-size: 0.9rem; color: var(--primary);" class="desktop-feed-title">📋 รายงานสดจากประชาชน</h3>
+            <h3 style="margin-top:0; font-size: 0.85rem; color: var(--primary);">📋 รายงานสดจากประชาชน</h3>
             <div id="feedList"></div>
         </div>
+    </div>
+
+    <!-- ปุ่มสลับมุมมองเฉพาะมือถือ -->
+    <div class="mobile-view-toggle" id="mobileToggleBtn" onclick="toggleMobileView()">
+        <span id="mobileToggleIcon">📋 ดูรายการรายงานสด</span>
     </div>
 
     <!-- Modal แจ้งข้อมูล -->
@@ -373,8 +380,8 @@
                 <textarea id="reportText" rows="2" placeholder="รายละเอียดเพิ่มเติม"></textarea>
             </div>
             <div class="form-group">
-                <label>พิกัดที่เลือก:</label>
-                <input type="text" id="reportCoordsDisplay" readonly value="ใช้พิกัดสุ่มอัตโนมัติ (หรือกดเลือกพิกัดด้านล่าง)" style="background:#f1f5f9; font-size:0.75rem;">
+                <label>ตำแหน่งที่ปักหมุด:</label>
+                <input type="text" id="reportCoordsDisplay" readonly value="ยังไม่ได้เลือก (ระบบจะใช้พิกัดกลางอัตโนมัติ)" style="background:#f1f5f9; font-size:0.7rem;">
                 <input type="hidden" id="reportLat">
                 <input type="hidden" id="reportLng">
                 <button class="btn-action secondary small-btn" style="width:100%; margin-top:4px;" onclick="openLocationPickerFromModal()">🗺️ เลือกตำแหน่งจากแผนที่</button>
@@ -383,7 +390,7 @@
                 <label>รูปถ่าย (ถ้ามี):</label>
                 <input type="file" id="reportImage" accept="image/*">
             </div>
-            <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <div style="display: flex; gap: 6px; margin-top: 10px;">
                 <button class="btn-action report-btn" onclick="submitReport()">📤 ส่งรายงาน</button>
                 <button class="btn-action secondary" onclick="closeReportModal()">❌ ปิด</button>
             </div>
@@ -394,11 +401,11 @@
     <div id="locationPickerModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color: var(--primary);">📍 เลื่อนแผนที่เพื่อเลือกตำแหน่ง</h3>
-            <p style="font-size:0.75rem; color:#64748b; margin:0 0 8px 0;">เลื่อนแผนที่ให้หมุดสีแดงอยู่ตรงจุดที่ต้องการ แล้วกด "ยืนยันตำแหน่ง"</p>
+            <p style="font-size:0.7rem; color:#64748b; margin:0 0 6px 0;">เลื่อนแผนที่ให้หมุดสีแดงอยู่ตรงจุดถนนที่ต้องการ แล้วกด "ยืนยัน"</p>
             <div id="pickerMap">
                 <div class="map-center-pin">📍</div>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 6px;">
                 <button class="btn-action report-btn" onclick="confirmLocationSelection()">✅ ยืนยันตำแหน่งนี้</button>
                 <button class="btn-action secondary" onclick="closeLocationPicker()">❌ ยกเลิก</button>
             </div>
@@ -447,10 +454,10 @@
         const levelNames = { 1: 'น้ำแห้งปกติ', 2: 'น้ำระดับเข่า', 3: 'น้ำระดับเอว', 4: 'น้ำระดับอก', 5: 'น้ำเกินอก', 6: 'น้ำมิดหัว' };
         let markers = [];
 
-        // ฟังก์ชันระบบเสียงพูด (Text-to-Speech)
+        // ระบบเสียงพูด (Text-to-Speech)
         function speakWaterStatus(textToSpeak) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อนเริ่มพูดใหม่
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
                 utterance.lang = 'th-TH';
                 utterance.rate = 1.0;
@@ -480,7 +487,7 @@
                 const popupHtml = `<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>ระดับ: ${levelNames[item.level]}<br>เวลา: ${item.time}`;
                 circle.bindPopup(popupHtml);
 
-                // เมื่อคลิกที่หมุดบนแผนที่ ให้พูดรายละเอียด
+                // กดที่หมุดบนแผนที่ -> พูดเสียง
                 circle.on('click', () => {
                     const speechText = `สถานที่ ${item.name}, อำเภอ ${item.district}, สถานการณ์: ${item.text}, ระดับน้ำ: ${levelNames[item.level]}`;
                     speakWaterStatus(speechText);
@@ -513,8 +520,12 @@
 
         renderMapAndFeed(samutPrakanPoints);
 
-        // คลิกที่ Feed แล้วซูมไปที่หมุด พร้อมออกเสียง
+        // คลิก Feed แล้วซูมไปที่หมุด พร้อมออกเสียง
         function focusOnItem(lat, lng, name, district, text, levelName) {
+            // ปิด Sidebar บนมือถืออัตโนมัติเพื่อให้เห็นแผนที่
+            if (window.innerWidth <= 768) {
+                toggleMobileView();
+            }
             map.setView([lat, lng], 15);
             speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, สถานการณ์: ${text}, ระดับน้ำ: ${levelName}`);
         }
@@ -536,15 +547,19 @@
             renderMapAndFeed(samutPrakanPoints);
         }
 
-        // ควบคุมการย่อ/ขยาย Sidebar บนมือถือ
-        function toggleSidebar() {
+        // ฟังก์ชันสลับมุมมองบนมือถือ (แผนที่ <-> รายงานสด)
+        let isFeedVisible = false;
+        function toggleMobileView() {
             const sidebar = document.getElementById('sidebar');
-            const toggleIcon = document.getElementById('toggleIcon');
-            sidebar.classList.toggle('minimized');
-            if (sidebar.classList.contains('minimized')) {
-                toggleIcon.innerText = '▲';
+            const toggleIcon = document.getElementById('mobileToggleIcon');
+            isFeedVisible = !isFeedVisible;
+            if (isFeedVisible) {
+                sidebar.classList.add('active');
+                toggleIcon.innerText = '🗺️ กลับไปหน้าแผนที่';
             } else {
-                toggleIcon.innerText = '▼';
+                sidebar.classList.remove('active');
+                toggleIcon.innerText = '📋 ดูรายการรายงานสด';
+                setTimeout(() => { map.invalidateSize(); }, 100);
             }
         }
 
@@ -578,15 +593,12 @@
                     pickerMap.invalidateSize();
                     pickerMap.setView([selectedLat, selectedLng], 13);
                 }
-            }, 200);
+            }, 250);
         }
 
         function closeLocationPicker() {
             document.getElementById('locationPickerModal').style.display = 'none';
-            // ถ้ากำลังเปิดฟอร์มแจ้งรายงานอยู่ ให้เปิดกลับมา
-            if (document.getElementById('reportName').value !== '' || document.getElementById('reportModal').style.display === 'none') {
-                // เช็คว่าควรกลับมาหน้าฟอร์มรายงานไหม
-            }
+            document.getElementById('reportModal').style.display = 'flex';
         }
 
         function confirmLocationSelection() {
