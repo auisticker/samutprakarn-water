@@ -233,7 +233,7 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
-        /* ควบคุมการแสดงผลเฉพาะบนมือถือ */
+        /* ควบคุมการแสดงผลเฉพาะบนมือถือ (แบบพับย่อ Sidebar หรือสลับโหมด) */
         .mobile-view-toggle {
             display: none;
         }
@@ -244,13 +244,22 @@
             }
             .sidebar {
                 position: absolute;
-                top: 0; left: 0; width: 100%; height: 100%;
-                display: none;
-                background: #f8fafc;
-                padding-bottom: 70px;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 45vh; /* พับย่อให้เหลือพื้นที่ครึ่งล่าง มองเห็นแผนสดุดตา */
+                border-left: none;
+                border-top: 2px solid #cbd5e1;
+                border-radius: 16px 16px 0 0;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+                transform: translateY(calc(100% - 45px)); /* ย่อเก็บเหลือแถบหัวข้อโผล่เล็กน้อยให้ดึงดูด */
+                transition: transform 0.3s ease-in-out;
+                background: white;
+                z-index: 2500;
+                padding-bottom: 60px;
             }
             .sidebar.active {
-                display: block;
+                transform: translateY(0); /* ขยายขึ้นมาเต็มพื้นที่ 45vh เมื่อกดปุ่ม */
             }
             #map {
                 width: 100%;
@@ -269,7 +278,7 @@
                 font-size: 0.8rem;
                 font-weight: 600;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                z-index: 2500;
+                z-index: 2600;
                 cursor: pointer;
                 align-items: center;
                 gap: 6px;
@@ -331,12 +340,12 @@
     <div class="main-layout">
         <div id="map"></div>
         <div class="sidebar" id="sidebar">
-            <h3 style="margin-top:0; font-size: 0.85rem; color: var(--primary);">📋 รายงานสดจากประชาชน</h3>
+            <h3 style="margin-top:0; font-size: 0.85rem; color: var(--primary); cursor: pointer;" onclick="toggleMobileView()">📋 รายงานสดจากประชาชน ↕</h3>
             <div id="feedList"></div>
         </div>
     </div>
 
-    <!-- ปุ่มสลับมุมมองเฉพาะมือถือ -->
+    <!-- ปุ่มสลับมุมมอง/พับย่อเฉพาะมือถือ -->
     <div class="mobile-view-toggle" id="mobileToggleBtn" onclick="toggleMobileView()">
         <span id="mobileToggleIcon">📋 ดูรายการรายงานสด</span>
     </div>
@@ -422,7 +431,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 🔴 ขอบเขตจังหวัดสมุทรปราการ (เส้นทึบสีแดงหนา)
+        // 🔴 ขอบเขตจังหวัดสมุทรปราการ (เส้นทึบสีแดงหนา 4 ไม่มีเส้นประ)
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520],
             [13.670, 100.600],
@@ -434,11 +443,11 @@
         ];
 
         const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#dc2626',       // เส้นทึบสีแดง
-            weight: 4,              // ความหนา
-            dashArray: null,        // เอาเส้นประออก
-            fillColor: '#ef4444',   
-            fillOpacity: 0.08       
+            color: '#dc2626',        // เส้นทึบสีแดง
+            weight: 4,               // ความหนา 4 ตามกำหนด
+            dashArray: null,         // ไม่มีเส้นประ
+            fillColor: '#ef4444',    
+            fillOpacity: 0.08        
         }).addTo(map);
 
         map.fitBounds(provinceBoundary.getBounds());
@@ -487,7 +496,7 @@
                 const popupHtml = `<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>ระดับ: ${levelNames[item.level]}<br>เวลา: ${item.time}`;
                 circle.bindPopup(popupHtml);
 
-                // กดที่หมุดบนแผนที่ -> พูดเสียง
+                // คลิกที่หมุดบนแผนที่ -> พูดเสียงอัตโนมัติ
                 circle.on('click', () => {
                     const speechText = `สถานที่ ${item.name}, อำเภอ ${item.district}, สถานการณ์: ${item.text}, ระดับน้ำ: ${levelNames[item.level]}`;
                     speakWaterStatus(speechText);
@@ -522,7 +531,7 @@
 
         // คลิก Feed แล้วซูมไปที่หมุด พร้อมออกเสียง
         function focusOnItem(lat, lng, name, district, text, levelName) {
-            // ปิด Sidebar บนมือถืออัตโนมัติเพื่อให้เห็นแผนที่
+            // พับย่อ Sidebar บนมือถืออัตโนมัติเพื่อให้เห็นแผนที่ชัดเจน
             if (window.innerWidth <= 768) {
                 toggleMobileView();
             }
@@ -547,7 +556,7 @@
             renderMapAndFeed(samutPrakanPoints);
         }
 
-        // ฟังก์ชันสลับมุมมองบนมือถือ (แผนที่ <-> รายงานสด)
+        // ฟังก์ชันสลับ/พับย่อมุมมองบนมือถือ (แผนที่เต็มจอ <-> พับเปิด Feed รายงานสด)
         let isFeedVisible = false;
         function toggleMobileView() {
             const sidebar = document.getElementById('sidebar');
@@ -559,11 +568,11 @@
             } else {
                 sidebar.classList.remove('active');
                 toggleIcon.innerText = '📋 ดูรายการรายงานสด';
-                setTimeout(() => { map.invalidateSize(); }, 100);
+                setTimeout(() => { map.invalidateSize(); }, 300);
             }
         }
 
-        // จัดการ Modal แจ้งเหตุและเลือกพิกัด
+        // จัดการ Modal แจ้งเหตุและเลือกพิกัดด้วยการเลื่อนแผนที่
         let selectedLat = 13.5990;
         let selectedLng = 100.5990;
         let pickerMap = null;
