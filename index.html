@@ -46,10 +46,26 @@
             flex-shrink: 0;
             z-index: 1000;
         }
+        .header-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
         .btn-sos {
             background-color: #fee2e2;
             color: #dc2626;
             border: 1px solid #f87171;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .btn-hotline {
+            background-color: #e0f2fe;
+            color: #0284c7;
+            border: 1px solid #38bdf8;
             padding: 5px 10px;
             border-radius: 20px;
             font-family: 'Prompt', sans-serif;
@@ -206,6 +222,30 @@
             width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Prompt', sans-serif; font-size: 0.8rem;
         }
 
+        /* Modal เบอร์โทรฉุกเฉิน */
+        .hotline-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hotline-info b { display: block; color: var(--primary); font-size: 0.8rem; }
+        .hotline-info span { color: #64748b; font-size: 0.7rem; }
+        .hotline-btn {
+            background: #0284c7;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
         /* Modal เลือกพิกัด */
         #locationPickerModal .modal-content {
             width: 95%;
@@ -257,8 +297,11 @@
 <body>
 
     <header>
-        <span>🌊 น้ำท่วม จ.สมุทรปราการ</span>
-        <button class="btn-sos" onclick="alert('📞 สายด่วนกู้ภัยสมุทรปราการ: 1669')">📞 โทร 1669</button>
+        <span>🌊 น้ำท่วม สมุทรปราการ</span>
+        <div class="header-btns">
+            <button class="btn-hotline" onclick="openHotlineModal()">📞 เบอร์ฉุกเฉิน</button>
+            <button class="btn-sos" onclick="alert('📞 สายด่วนกู้ภัยสมุทรปราการ: 1669')">🚨 1669</button>
+        </div>
     </header>
 
     <div class="level-bar-container">
@@ -311,6 +354,66 @@
 
     <div class="mobile-view-toggle" id="mobileToggleBtn" onclick="toggleMobileView()">
         <span id="mobileToggleIcon">📋 ดูรายการรายงานสด</span>
+    </div>
+
+    <!-- Modal ศูนย์ช่วยเหลือและเบอร์ฉุกเฉิน -->
+    <div id="hotlineModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color: var(--primary);">📞 ศูนย์ช่วยเหลือและเบอร์ฉุกเฉิน จ.สมุทรปราการ</h3>
+            <p style="font-size:0.7rem; color:#64748b; margin-top:-4px; margin-bottom:10px;">กดที่ปุ่มโทรออกเพื่อติดต่อหน่วยงานความช่วยเหลือได้ทันที</p>
+            
+            <div class="hotline-card">
+                <div class="hotline-info">
+                    <b>สำนักงาน ปภ. จังหวัดสมุทรปราการ</b>
+                    <span>ศูนย์ป้องกันและบรรเทาสาธารณภัยจังหวัด</span>
+                </div>
+                <a href="tel:023826040" class="hotline-btn">📞 02-382-6040</a>
+            </div>
+
+            <div class="hotline-card">
+                <div class="hotline-info">
+                    <b>สายด่วน ปภ. (ส่วนกลาง)</b>
+                    <span>แจ้งภัยพิบัติ อพยพ น้ำท่วม (24 ชม.)</span>
+                </div>
+                <a href="tel:1784" class="hotline-btn">📞 1784</a>
+            </div>
+
+            <div class="hotline-card">
+                <div class="hotline-info">
+                    <b>สถาบันการแพทย์ฉุกเฉินแห่งชาติ (กู้ชีพ)</b>
+                    <span>เจ็บป่วยฉุกเฉิน / นำส่งโรงพยาบาล</span>
+                </div>
+                <a href="tel:1669" class="hotline-btn">📞 1669</a>
+            </div>
+
+            <div class="hotline-card">
+                <div class="hotline-info">
+                    <b>การไฟฟ้านครหลวง (MEA)</b>
+                    <span>แจ้งเหตุไฟฟ้าขัดข้อง / เสาไฟล้ม</span>
+                </div>
+                <a href="tel:1130" class="hotline-btn">📞 1130</a>
+            </div>
+
+            <div class="hotline-card">
+                <div class="hotline-info">
+                    <b>การประปานครหลวง (MWA)</b>
+                    <span>แจ้งเหตุน้ำประปาไม่ไหล / ท่อแตก</span>
+                </div>
+                <a href="tel:1125" class="hotline-btn">📞 1125</a>
+            </div>
+
+            <div class="hotline-card">
+                <div class="hotline-info">
+                    <b>ศูนย์ดำรงธรรมจังหวัดสมุทรปราการ</b>
+                    <span>รับเรื่องร้องเรียน / ขอความช่วยเหลือเร่งด่วน</span>
+                </div>
+                <a href="tel:1567" class="hotline-btn">📞 1567</a>
+            </div>
+
+            <div style="margin-top: 12px;">
+                <button class="btn-action secondary" style="width: 100%;" onclick="closeHotlineModal()">❌ ปิดหน้าต่าง</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal แจ้งข้อมูล -->
@@ -407,7 +510,6 @@
             "อำเภอบางเสาธง": ["บางเสาธง", "ศีรษะจรเข้ใหญ่", "ศีรษะจรเข้น้อย"]
         };
 
-        // ฟังก์ชันอัปเดตตัวเลือกตำบลในฟอร์มรายงาน
         window.onReportDistrictChange = function() {
             const districtSelect = document.getElementById('reportDistrict');
             const subdistrictSelect = document.getElementById('reportSubdistrict');
@@ -424,7 +526,6 @@
             }
         };
 
-        // ฟังก์ชันอัปเดตตัวเลือกตำบลในส่วนกรองข้อมูลด้านบน
         window.onFilterDistrictChange = function() {
             const districtSelect = document.getElementById('filterDistrict');
             const subdistrictSelect = document.getElementById('filterSubdistrict');
@@ -442,10 +543,8 @@
             filterData();
         };
 
-        // เรียกใช้งานครั้งแรกเพื่อเติมข้อมูลตำบลตั้งต้น
         onReportDistrictChange();
 
-        // เชื่อมต่อฐานข้อมูล Firebase (samutprakarn-water)
         const firebaseConfig = {
             apiKey: "AIzaSyD-เชื่อมต่อสำเร็จแล้ว",
             authDomain: "samutprakarn-water.firebaseapp.com",
@@ -583,7 +682,6 @@
             document.getElementById('cnt6').innerText = counts[6];
         }
 
-        // ดึงข้อมูล Real-time จาก Firebase Database ทันทีที่มีการเปลี่ยนแปลง
         const reportsRef = ref(db, 'flood_reports');
         onValue(reportsRef, (snapshot) => {
             const dbData = snapshot.val();
@@ -625,6 +723,10 @@
                 setTimeout(() => { map.invalidateSize(); }, 300);
             }
         }
+
+        // จัดการ Modal เบอร์โทรฉุกเฉิน
+        window.openHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'flex'; }
+        window.closeHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'none'; }
 
         let pickerMap = null;
         window.openReportModal = function() { document.getElementById('reportModal').style.display = 'flex'; }
@@ -690,7 +792,6 @@
             const now = new Date();
             const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} น.`;
 
-            // บันทึกข้อมูลลง Firebase Database
             push(reportsRef, {
                 name: name,
                 district: district,
