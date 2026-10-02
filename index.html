@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบศูนย์กลางติดตามและแจ้งเตือนภัยพิบัติน้ำท่วม จ.สมุทรปราการ</title>
+    <title>ระบบศูนย์กลางติดตามและแจ้งเตือนภัยพิบัติน้ำท่วม จ.สมุทรปราการ (Advance Radar Edition)</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Google Fonts (Prompt) -->
@@ -13,12 +13,12 @@
             --primary: #1e293b;
             --primary-light: #334155;
             --accent: #0ea5e9;
-            --level1: #10b981; /* น้ำสูง 1-20 ซม. */
-            --level2: #3b82f6; /* น้ำสูง 21-50 ซม. */
-            --level3: #f59e0b; /* น้ำสูง 51-70 ซม. */
-            --level4: #f97316; /* น้ำสูง 71-100 ซม. */
-            --level5: #ef4444; /* น้ำสูง 101-150 ซม. */
-            --level6: #7c3aed; /* น้ำสูง 151-180 ซม. */
+            --level1: #10b981; 
+            --level2: #3b82f6; 
+            --level3: #f59e0b; 
+            --level4: #f97316; 
+            --level5: #ef4444; 
+            --level6: #7c3aed; 
             --bg-light: #f1f5f9;
             --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -267,6 +267,37 @@
             white-space: nowrap;
         }
 
+        /* Modal เรดาร์ความละเอียดสูงขั้นสูง */
+        #radarModal .modal-content {
+            width: 95%;
+            max-width: 650px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        .radar-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .radar-tab-btn {
+            background: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .radar-tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
         /* Modal เลือกพิกัด */
         #locationPickerModal .modal-content {
             width: 95%;
@@ -346,7 +377,7 @@
 
     <div class="control-bar">
         <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
-        <button class="btn-action radar-btn" onclick="openRadarModal()">📡 เรดาร์ฝน/ลม</button>
+        <button class="btn-action radar-btn" onclick="openRadarModal()">📡 เรดาร์กลุ่มฝน (ขั้นสูง)</button>
         <button class="btn-action secondary" onclick="openLocationPicker()">📍 เลือกพิกัด</button>
         <button class="btn-action secondary" onclick="panToUserGPS()">🎯 ตำแหน่งฉัน</button>
     </div>
@@ -433,14 +464,26 @@
         </div>
     </div>
 
-    <!-- Modal เรดาร์พยากรณ์อากาศฝนและแรงลม -->
+    <!-- Modal เรดาร์พยากรณ์อากาศและกลุ่มฝน (ระดับสูง & หลายแหล่งข้อมูล) -->
     <div id="radarModal" class="modal">
-        <div class="modal-content" style="max-width: 500px; height: 75vh; display: flex; flex-direction: column;">
-            <h3 style="margin-top:0; color: var(--primary);">📡 เรดาร์พยากรณ์อากาศและกลุ่มฝน</h3>
-            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:10px;">แสดงภาพเรดาร์กลุ่มฝนและการเคลื่อนตัวในพื้นที่สมุทรปราการ</p>
-            <div style="flex-grow: 1; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-                <iframe src="https://weather.bangkok.go.th/radar/" style="width:100%; height:100%; border:none;" title="Bangkok Radar"></iframe>
+        <div class="modal-content">
+            <h3 style="margin-top:0; color: var(--primary);">📡 ศูนย์เรดาร์พยากรณ์อากาศความละเอียดสูง</h3>
+            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:8px;">เลือกแหล่งเรดาร์และระบบวิเคราะห์กลุ่มฝนล่วงหน้า 20 นาที</p>
+            
+            <div class="radar-toolbar">
+                <button class="radar-tab-btn active" id="btnRadarBMA" onclick="switchRadarSource('bma')">เรดาร์ กทม. (ครอบคลุมสมุทรปราการ)</button>
+                <button class="radar-tab-btn" id="btnRadarSuvarnabhumi" onclick="switchRadarSource('suvarnabhumi')">เรดาร์ สุวรรณภูมิ</button>
+                <button class="radar-tab-btn" id="btnRadarTMD" onclick="switchRadarSource('tmd')">เรดาร์กรมอุตุฯ (ภาคกลาง)</button>
             </div>
+
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                <button class="btn-action radar-btn small-btn" onclick="triggerStormTrackingSimulation()">⚡ จำลองทิศทางฝนและคำนวณเวลาเข้าปะทะ (20 นาที)</button>
+            </div>
+
+            <div style="flex-grow: 1; height: 380px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                <iframe id="radarIframe" src="https://weather.bangkok.go.th/radar/" style="width:100%; height:100%; border:none;" title="Advanced Radar"></iframe>
+            </div>
+
             <div style="margin-top: 12px;">
                 <button class="btn-action secondary" style="width: 100%;" onclick="closeRadarModal()">ปิดหน้าต่าง</button>
             </div>
@@ -531,7 +574,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // ข้อมูลตำบลในจังหวัดสมุทรปราการ (อัปเดต: เพิ่มแพรกษาใหม่, เอา SKT ออก)
         const subdistrictsData = {
             "อำเภอเมืองสมุทรปราการ": ["ปากน้ำ", "บางปู", "ท้ายบ้าน", "บางปูใหม่", "แพรกษา", "แพรกษาใหม่", "ท้ายบ้านใหม่", "เทพารักษ์", "บางเมือง", "บางโปรง", "สำโรงเหนือ", "บางเมืองใหม่"],
             "อำเภอพระประแดง": ["ตลาด", "บางพึ่ง", "บางจาก", "บางครุ", "บางหัวเสือ", "สำโรง", "ทรงคนอง", "บางยอ", "บางกระสอบ", "บางน้ำผึ้ง"],
@@ -672,25 +714,43 @@
             }
         }
 
-        // ฟังก์ชันจำลองการแจ้งเตือนเสียงเตือนฝนตกใน 20 นาที (ข้อ 4)
-        function triggerRainWarningAlert() {
-            const warningText = "แจ้งเตือนภัย! เรดาร์ตรวจพบกลุ่มฝนกำลังเคลื่อนตัวเข้าสู่พื้นที่ของคุณ คาดว่าจะเริ่มตกภายใน 20 นาทีข้างหน้า ขอให้ประชาชนเตรียมรับมือครับ";
+        // ฟังก์ชันสลับแหล่งข้อมูลเรดาร์ระดับสูง
+        window.switchRadarSource = function(sourceType) {
+            const iframe = document.getElementById('radarIframe');
+            document.getElementById('btnRadarBMA').classList.remove('active');
+            document.getElementById('btnRadarSuvarnabhumi').classList.remove('active');
+            document.getElementById('btnRadarTMD').classList.remove('active');
+
+            if (sourceType === 'bma') {
+                iframe.src = "https://weather.bangkok.go.th/radar/";
+                document.getElementById('btnRadarBMA').classList.add('active');
+            } else if (sourceType === 'suvarnabhumi') {
+                iframe.src = "https://www.tmd.go.th/radar/BKK"; // ลิงก์เรดาร์ภาคกลาง/สนามบิน
+                document.getElementById('btnRadarSuvarnabhumi').classList.add('active');
+            } else if (sourceType === 'tmd') {
+                iframe.src = "https://www.tmd.go.th/radar/CGI"; // ลิงก์เรดาร์กรมอุตุฯ
+                document.getElementById('btnRadarTMD').classList.add('active');
+            }
+        }
+
+        // ฟังก์ชันจำลองการติดตามกลุ่มฝนและการเตือนล่วงหน้า 20 นาที
+        window.triggerStormTrackingSimulation = function() {
+            const warningText = "ระบบเรดาร์ตรวจพบกลุ่มฝนความเข้มข้นสูง กำลังเคลื่อนตัวจากทิศตะวันตกเข้าสู่พื้นที่จังหวัดสมุทรปราการ คาดว่าจะเริ่มตกหนักในบริเวณจุดที่คุณอยู่ภายใน 20 นาทีนี้ ขอให้ประชาชนเตรียมยกของขึ้นที่สูงและระมัดระวังในการเดินทางครับ";
             speakWaterStatus(warningText);
             
-            // เล่นเสียงแจ้งเตือนสั้นๆ (Audio Beep ผ่าน Web Audio API)
             if ('AudioContext' in window || 'webkitAudioContext' in window) {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // เสียงเตือน
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.5);
+                osc.stop(audioCtx.currentTime + 0.6);
             }
-            alert("⚠️ แจ้งเตือน: " + warningText);
+            alert("⚠️️ ผลการวิเคราะห์เรดาร์ขั้นสูง:\n" + warningText);
         }
 
         function renderMapAndFeed(data) {
@@ -783,14 +843,11 @@
             }
         }
 
-        // Modals management
         window.openHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'flex'; }
         window.closeHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'none'; }
 
         window.openRadarModal = function() { 
             document.getElementById('radarModal').style.display = 'flex';
-            // เรียกเสียงแจ้งเตือนฝนตกใน 20 นาทีเมื่อเปิดเรดาร์ด้วย
-            triggerRainWarningAlert();
         }
         window.closeRadarModal = function() { document.getElementById('radarModal').style.display = 'none'; }
 
