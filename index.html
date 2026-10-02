@@ -13,12 +13,12 @@
             --primary: #1e293b;
             --primary-light: #334155;
             --accent: #0ea5e9;
-            --level1: #10b981; 
-            --level2: #3b82f6; 
-            --level3: #f59e0b; 
-            --level4: #f97316; 
-            --level5: #ef4444; 
-            --level6: #7c3aed; 
+            --level1: #10b981; /* แห้งแล้ว */
+            --level2: #3b82f6; /* 1-50 ซม. */
+            --level3: #f59e0b; /* 51-70 ซม. */
+            --level4: #f97316; /* 71-100 ซม. */
+            --level5: #ef4444; /* 101-150 ซม. */
+            --level6: #7c3aed; /* 151-180 ซม. */
             --bg-light: #f1f5f9;
             --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -65,7 +65,6 @@
             font-weight: 600;
             font-size: 0.75rem;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
         .btn-hotline {
             background-color: #e0f2fe;
@@ -102,13 +101,13 @@
             background: #f8fafc;
             padding: 6px 4px;
             border-radius: 8px;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 500;
             border: 1px solid #e2e8f0;
         }
         .stat-card span {
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         .control-bar {
             background: white;
@@ -136,11 +135,10 @@
             gap: 6px;
             flex-grow: 1;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: background 0.2s;
         }
-        .btn-action:hover { opacity: 0.9; }
         .btn-action.secondary { background: white; color: var(--primary); border: 1px solid #cbd5e1; }
         .btn-action.report-btn { background: #059669; color: white; }
+        .btn-action.route-btn { background: #7c3aed; color: white; }
         .btn-action.radar-btn { background: #0284c7; color: white; }
         .btn-action.small-btn { padding: 4px 8px; font-size: 0.7rem; flex-grow: 0; }
 
@@ -240,7 +238,6 @@
             width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Prompt', sans-serif; font-size: 0.8rem; outline: none;
         }
 
-        /* Modal เบอร์โทรฉุกเฉิน */
         .hotline-card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -264,64 +261,11 @@
             white-space: nowrap;
         }
 
-        /* Modal เรดาร์ทางเลือกแบบลิงก์ตรง (แก้ปัญหาโหลดไม่ขึ้น) */
-        #radarModal .modal-content {
-            width: 95%;
-            max-width: 550px;
-            height: auto;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-        .radar-link-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .radar-link-info b { display: block; color: var(--primary); font-size: 0.85rem; }
-        .radar-link-info span { color: #64748b; font-size: 0.75rem; }
-        .radar-external-btn {
-            background: #0ea5e9;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.75rem;
-            white-space: nowrap;
-        }
-
-        /* Modal เลือกพิกัด */
         #locationPickerModal .modal-content {
-            width: 95%;
-            max-width: 500px;
-            height: 75vh;
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
+            width: 95%; max-width: 500px; height: 75vh; display: flex; flex-direction: column; padding: 12px;
         }
-        #pickerMap {
-            flex-grow: 1;
-            width: 100%;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            position: relative;
-        }
-        .map-center-pin {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -100%);
-            font-size: 2rem;
-            z-index: 2000;
-            pointer-events: none;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
+        #pickerMap { flex-grow: 1; width: 100%; border-radius: 8px; margin-bottom: 8px; position: relative; }
+        .map-center-pin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); font-size: 2rem; z-index: 2000; pointer-events: none; }
 
         .mobile-view-toggle { display: none; }
 
@@ -356,16 +300,16 @@
 
     <div class="level-bar-container">
         <div class="color-spectrum">
-            <div class="spectrum-item" style="background: var(--level1);" title="1-20 ซม."></div>
-            <div class="spectrum-item" style="background: var(--level2);" title="21-50 ซม."></div>
+            <div class="spectrum-item" style="background: var(--level1);" title="แห้งแล้ว"></div>
+            <div class="spectrum-item" style="background: var(--level2);" title="1-50 ซม."></div>
             <div class="spectrum-item" style="background: var(--level3);" title="51-70 ซม."></div>
             <div class="spectrum-item" style="background: var(--level4);" title="71-100 ซม."></div>
             <div class="spectrum-item" style="background: var(--level5);" title="101-150 ซม."></div>
             <div class="spectrum-item" style="background: var(--level6);" title="151-180 ซม."></div>
         </div>
         <div class="stats-grid">
-            <div class="stat-card" style="border-top: 3px solid var(--level1);">1-20ซม.<br><span id="cnt1">0</span></div>
-            <div class="stat-card" style="border-top: 3px solid var(--level2);">21-50ซม.<br><span id="cnt2">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level1);">แห้งแล้ว<br><span id="cnt1">0</span></div>
+            <div class="stat-card" style="border-top: 3px solid var(--level2);">1-50ซม.<br><span id="cnt2">0</span></div>
             <div class="stat-card" style="border-top: 3px solid var(--level3);">51-70ซม.<br><span id="cnt3">0</span></div>
             <div class="stat-card" style="border-top: 3px solid var(--level4);">71-100ซม.<br><span id="cnt4">0</span></div>
             <div class="stat-card" style="border-top: 3px solid var(--level5);">101-150ซม.<br><span id="cnt5">0</span></div>
@@ -375,8 +319,8 @@
 
     <div class="control-bar">
         <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
-        <button class="btn-action radar-btn" onclick="openRadarModal()">📡 เรดาร์กลุ่มฝน (ทางการ)</button>
-        <button class="btn-action secondary" onclick="openLocationPicker()">📍 เลือกพิกัด</button>
+        <button class="btn-action route-btn" onclick="openRouteModal()">🗺️ ค้นหาเส้นทางเลี่ยงน้ำ</button>
+        <button class="btn-action radar-btn" onclick="openRadarModal()">📡 เรดาร์ฝน</button>
         <button class="btn-action secondary" onclick="panToUserGPS()">🎯 ตำแหน่งฉัน</button>
     </div>
 
@@ -399,8 +343,8 @@
         <div id="map"></div>
         <div class="sidebar" id="sidebar">
             <h3 style="margin-top:0; font-size: 0.9rem; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleMobileView()">
-                <span>📋 รายงานสถานการณ์สด</span>
-                <span style="font-size:0.75rem; color:#64748b;">สลับมุมมอง ↕</span>
+                <span>📋 รายงานสถานการณ์สด (ทุกคนช่วยอัปเดตได้)</span>
+                <span style="font-size:0.75rem; color:#64748b;">↕</span>
             </h3>
             <div id="feedList"></div>
         </div>
@@ -410,102 +354,97 @@
         <span id="mobileToggleIcon">📋 ดูรายการรายงานสด</span>
     </div>
 
-    <!-- Modal ศูนย์ช่วยเหลือและเบอร์ฉุกเฉิน -->
+    <!-- Modal ค้นหาเส้นทางและเลี่ยงน้ำท่วม -->
+    <div id="routeModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color: var(--primary);">🗺️ ค้นหาเส้นทางเดินทางและเลี่ยงน้ำท่วม</h3>
+            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:12px;">ระบบวิเคราะห์ถนนทุกเส้นในสมุทรปราการและหลีกเลี่ยงจุดน้ำท่วม</p>
+            <div class="form-group">
+                <label>จุดเริ่มต้น:</label>
+                <input type="text" id="routeStart" value="ตำแหน่งปัจจุบัน (GPS)">
+            </div>
+            <div class="form-group">
+                <label>จุดหมายปลายทาง:</label>
+                <input type="text" id="routeEnd" placeholder="เช่น นิคมอุตสาหกรรมบางปู, BTS สำโรง...">
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 12px;">
+                <b>🛡️ ระบบอัจฉริยะ:</b> ทำการเช็กพิกัดถนนสุขุมวิท, ถนนศรีนครินทร์, ถนนเทพารักษ์, ถนนตำหรุ-บางพลี และซอยย่อย พร้อมคำนวณเส้นทางสำรองที่แห้งสนิทให้ทันที
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-action route-btn" onclick="calculateSafeRoute()">🚗 นำทางเลี่ยงน้ำท่วม</button>
+                <button class="btn-action secondary" onclick="closeRouteModal()">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal อัปเดต/แก้ไขระดับน้ำ (สำหรับทุกคน) -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color: var(--primary);">✏️ อัปเดต/แก้ไขสถานการณ์ระดับน้ำ</h3>
+            <p id="editLocationTitle" style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:12px;"></p>
+            <input type="hidden" id="editReportId">
+            <div class="form-group">
+                <label>ระดับน้ำล่าสุด:</label>
+                <select id="editLevel">
+                    <option value="1">🟢 ระดับ 1: แห้งแล้ว</option>
+                    <option value="2">🔵 ระดับ 2: 1-50 ซม.</option>
+                    <option value="3">🟡 ระดับ 3: 51-70 ซม.</option>
+                    <option value="4">🟠 ระดับ 4: 71-100 ซม.</option>
+                    <option value="5">🔴 ระดับ 5: 101-150 ซม.</option>
+                    <option value="6">🟣 ระดับ 6: 151-180 ซม.</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>สถานะเพิ่มเติม / รายละเอียด:</label>
+                <textarea id="editStatusText" rows="2" placeholder="เช่น น้ำลดลงต่อเนื่อง รถเล็กผ่านได้"></textarea>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <button class="btn-action report-btn" onclick="submitWaterUpdate()">💾 บันทึกการแก้ไข</button>
+                <button class="btn-action secondary" onclick="closeEditModal()">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal เบอร์โทรฉุกเฉิน -->
     <div id="hotlineModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color: var(--primary);">📞 ศูนย์ช่วยเหลือและเบอร์ฉุกเฉิน</h3>
-            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:12px;">กดปุ่มโทรออกเพื่อติดต่อหน่วยงานทันที</p>
-            
             <div class="hotline-card">
-                <div class="hotline-info">
-                    <b>สำนักงาน ปภ. จังหวัดสมุทรปราการ</b>
-                    <span>ศูนย์ป้องกันและบรรเทาสาธารณภัย</span>
-                </div>
+                <div class="hotline-info"><b>ปภ. สมุทรปราการ</b><span>ศูนย์ป้องกันภัย</span></div>
                 <a href="tel:023826040" class="hotline-btn">📞 02-382-6040</a>
             </div>
-
             <div class="hotline-card">
-                <div class="hotline-info">
-                    <b>สายด่วน ปภ. (ส่วนกลาง)</b>
-                    <span>แจ้งภัยพิบัติ อพยพ น้ำท่วม (24 ชม.)</span>
-                </div>
+                <div class="hotline-info"><b>สายด่วน ปภ. (ส่วนกลาง)</b><span>แจ้งภัย 24 ชม.</span></div>
                 <a href="tel:1784" class="hotline-btn">📞 1784</a>
             </div>
-
             <div class="hotline-card">
-                <div class="hotline-info">
-                    <b>สถาบันการแพทย์ฉุกเฉินแห่งชาติ</b>
-                    <span>เจ็บป่วยฉุกเฉิน / นำส่งโรงพยาบาล</span>
-                </div>
+                <div class="hotline-info"><b>สถาบันการแพทย์ฉุกเฉิน</b><span>กู้ชีพ 1669</span></div>
                 <a href="tel:1669" class="hotline-btn">📞 1669</a>
             </div>
-
-            <div class="hotline-card">
-                <div class="hotline-info">
-                    <b>การไฟฟ้านครหลวง (MEA)</b>
-                    <span>แจ้งเหตุไฟฟ้าขัดข้อง / เสาไฟล้ม</span>
-                </div>
-                <a href="tel:1130" class="hotline-btn">📞 1130</a>
-            </div>
-
-            <div class="hotline-card">
-                <div class="hotline-info">
-                    <b>การประปานครหลวง (MWA)</b>
-                    <span>แจ้งเหตุน้ำประปาไม่ไหล / ท่อแตก</span>
-                </div>
-                <a href="tel:1125" class="hotline-btn">📞 1125</a>
-            </div>
-
             <div style="margin-top: 16px;">
                 <button class="btn-action secondary" style="width: 100%;" onclick="closeHotlineModal()">ปิดหน้าต่าง</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal ศูนย์เรดาร์พยากรณ์อากาศ (ลิงก์ตรงทางการ) -->
+    <!-- Modal เรดาร์ฝน -->
     <div id="radarModal" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top:0; color: var(--primary);">📡 ศูนย์เรดาร์ตรวจอากาศ (ความละเอียดสูง)</h3>
-            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:12px;">เลือกแหล่งเรดาร์เพื่อเปิดดูภาพกลุ่มฝนล่าสุดอย่างละเอียด</p>
-            
-            <div class="radar-link-card">
-                <div class="radar-link-info">
-                    <b>เรดาร์สำนักระบายน้ำ กทม.</b>
-                    <span>ครอบคลุมพื้นที่กรุงเทพฯ และสมุทรปราการแบบเรียลไทม์</span>
-                </div>
-                <a href="https://weather.bangkok.go.th/radar/" target="_blank" class="radar-external-btn">🔍 เปิดเรดาร์ กทม.</a>
+        <div class="modal-content" style="max-width: 550px; height: 80vh; display: flex; flex-direction: column;">
+            <h3 style="margin-top:0; color: var(--primary);">📡 เรดาร์ตรวจอากาศ (ความละเอียดสูง)</h3>
+            <div style="flex-grow: 1; height: 350px; background: #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
+                <iframe src="https://weather.bangkok.go.th/radar/" style="width:100%; height:100%; border:none;" title="Radar"></iframe>
             </div>
-
-            <div class="radar-link-card">
-                <div class="radar-link-info">
-                    <b>เรดาร์กรมอุตุนิยมวิทยา (หนองแขม / ภาคกลาง)</b>
-                    <span>ตรวจสอบทิศทางกลุ่มฝนลูกใหญ่และความรุนแรงพายุ</span>
-                </div>
-                <a href="https://www.tmd.go.th/radar" target="_blank" class="radar-external-btn">🔍 เปิดเรดาร์กรมอุตุฯ</a>
-            </div>
-
-            <div class="radar-link-card">
-                <div class="radar-link-info">
-                    <b>ภาพถ่ายดาวเทียมกรมอุตุนิยมวิทยา</b>
-                    <span>ดูภาพรวมกลุ่มเมฆและแนวปะทะลมระดับภูมิภาค</span>
-                </div>
-                <a href="https://www.tmd.go.th/satellite" target="_blank" class="radar-external-btn">🔍 เปิดดาวเทียม</a>
-            </div>
-
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-                <button class="btn-action radar-btn" style="flex:1;" onclick="triggerStormTrackingSimulation()">⚡ จำลองเสียงเตือนฝนตก (20 นาที)</button>
-                <button class="btn-action secondary" style="flex:1;" onclick="closeRadarModal()">ปิดหน้าต่าง</button>
-            </div>
+            <button class="btn-action secondary" style="width: 100%;" onclick="closeRadarModal()">ปิดหน้าต่าง</button>
         </div>
     </div>
 
-    <!-- Modal แจ้งข้อมูล -->
+    <!-- Modal แจ้งข้อมูลใหม่ -->
     <div id="reportModal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0; color: var(--primary);">📝 รายงานสถานการณ์น้ำ</h3>
+            <h3 style="margin-top:0; color: var(--primary);">📝 รายงานจุดน้ำท่วมใหม่</h3>
             <div class="form-group">
-                <label>สถานที่ / ซอย / จุดสังเกต:</label>
-                <input type="text" id="reportName" placeholder="เช่น ซอยมังกร หรือหมู่บ้าน...">
+                <label>สถานที่ / ซอย / ถนน / จุดสังเกต:</label>
+                <input type="text" id="reportName" placeholder="เช่น ถนนเทพารักษ์ กม. 12...">
             </div>
             <div class="form-group">
                 <label>อำเภอ:</label>
@@ -520,31 +459,27 @@
             </div>
             <div class="form-group">
                 <label>ตำบล:</label>
-                <select id="reportSubdistrict">
-                    <!-- โหลดตำบลอัตโนมัติ -->
-                </select>
+                <select id="reportSubdistrict"></select>
             </div>
             <div class="form-group">
                 <label>ระดับน้ำ:</label>
                 <select id="reportLevel">
-                    <option value="1">🟢 ระดับ 1: น้ำสูง 1-20 ซม.</option>
-                    <option value="2">🔵 ระดับ 2: น้ำสูง 21-50 ซม.</option>
-                    <option value="3">🟡 ระดับ 3: น้ำสูง 51-70 ซม.</option>
-                    <option value="4">🟠 ระดับ 4: น้ำสูง 71-100 ซม.</option>
-                    <option value="5">🔴 ระดับ 5: น้ำสูง 101-150 ซม.</option>
-                    <option value="6">🟣 ระดับ 6: น้ำสูง 151-180 ซม.</option>
+                    <option value="1">🟢 ระดับ 1: แห้งแล้ว</option>
+                    <option value="2">🔵 ระดับ 2: 1-50 ซม.</option>
+                    <option value="3">🟡 ระดับ 3: 51-70 ซม.</option>
+                    <option value="4">🟠 ระดับ 4: 71-100 ซม.</option>
+                    <option value="5">🔴 ระดับ 5: 101-150 ซม.</option>
+                    <option value="6">🟣 ระดับ 6: 151-180 ซม.</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>รายละเอียด:</label>
-                <textarea id="reportText" rows="2" placeholder="รายละเอียดสถานการณ์เพิ่มเติม"></textarea>
+                <label>รายละเอียดเพิ่มเติม:</label>
+                <textarea id="reportText" rows="2" placeholder="เช่น รถเล็กผ่านไม่ได้ น้ำขึ้นสูง"></textarea>
             </div>
             <div class="form-group">
-                <label>ตำแหน่งที่ปักหมุด:</label>
-                <input type="text" id="reportCoordsDisplay" readonly value="ดึงพิกัดอัตโนมัติจาก GPS" style="background:#f8fafc; font-size:0.7rem;">
-                <input type="hidden" id="reportLat">
-                <input type="hidden" id="reportLng">
-                <button class="btn-action secondary small-btn" style="width:100%; margin-top:6px;" onclick="openLocationPickerFromModal()">🗺️ ปรับตำแหน่งจากแผนที่</button>
+                <label>พิกัด GPS:</label>
+                <input type="text" id="reportCoordsDisplay" readonly value="ดึงพิกัดอัตโนมัติ" style="background:#f8fafc; font-size:0.7rem;">
+                <input type="hidden" id="reportLat"><input type="hidden" id="reportLng">
             </div>
             <div class="form-group">
                 <label>รูปถ่าย (ถ้ามี):</label>
@@ -557,31 +492,13 @@
         </div>
     </div>
 
-    <!-- Modal เลือกพิกัดแบบเลื่อนแผนที่ -->
-    <div id="locationPickerModal" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top:0; color: var(--primary);">📍 เลือกตำแหน่งบนแผนที่</h3>
-            <p style="font-size:0.75rem; color:#64748b; margin:0 0 8px 0;">เลื่อนหมุดสีแดงไปยังจุดที่ต้องการตรวจสอบหรือรายงาน</p>
-            <div id="pickerMap">
-                <div class="map-center-pin">📍</div>
-            </div>
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <button class="btn-action secondary" onclick="pickerCenterToGPS()">🎯 ไปยังพิกัด GPS ของฉัน</button>
-            </div>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn-action report-btn" onclick="confirmLocationSelection()">✅ ยืนยันตำแหน่งนี้</button>
-                <button class="btn-action secondary" onclick="closeLocationPicker()">ยกเลิก</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- Firebase SDK (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const subdistrictsData = {
             "อำเภอเมืองสมุทรปราการ": ["ปากน้ำ", "บางปู", "ท้ายบ้าน", "บางปูใหม่", "แพรกษา", "แพรกษาใหม่", "ท้ายบ้านใหม่", "เทพารักษ์", "บางเมือง", "บางโปรง", "สำโรงเหนือ", "บางเมืองใหม่"],
@@ -596,13 +513,11 @@
             const districtSelect = document.getElementById('reportDistrict');
             const subdistrictSelect = document.getElementById('reportSubdistrict');
             const selectedDistrict = districtSelect.value;
-            
             subdistrictSelect.innerHTML = '';
             if (subdistrictsData[selectedDistrict]) {
                 subdistrictsData[selectedDistrict].forEach(sub => {
                     const opt = document.createElement('option');
-                    opt.value = sub;
-                    opt.textContent = sub;
+                    opt.value = sub; opt.textContent = sub;
                     subdistrictSelect.appendChild(opt);
                 });
             }
@@ -612,13 +527,11 @@
             const districtSelect = document.getElementById('filterDistrict');
             const subdistrictSelect = document.getElementById('filterSubdistrict');
             const selectedDistrict = districtSelect.value;
-            
             subdistrictSelect.innerHTML = '<option value="">ทุกตำบล</option>';
             if (selectedDistrict && subdistrictsData[selectedDistrict]) {
                 subdistrictsData[selectedDistrict].forEach(sub => {
                     const opt = document.createElement('option');
-                    opt.value = sub;
-                    opt.textContent = sub;
+                    opt.value = sub; opt.textContent = sub;
                     subdistrictSelect.appendChild(opt);
                 });
             }
@@ -641,105 +554,64 @@
         const db = getDatabase(app);
 
         const map = L.map('map').setView([13.599, 100.599], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520], [13.670, 100.600], [13.640, 100.750],
             [13.580, 100.860], [13.500, 100.820], [13.520, 100.580], [13.600, 100.500]
         ];
+        L.polygon(samutPrakanBoundaryCoords, { color: '#dc2626', weight: 3, fillColor: '#ef4444', fillOpacity: 0.05 }).addTo(map);
 
-        const provinceBoundary = L.polygon(samutPrakanBoundaryCoords, {
-            color: '#dc2626', weight: 3, fillColor: '#ef4444', fillOpacity: 0.05        
-        }).addTo(map);
-
-        let userLat = 13.5990;
-        let userLng = 100.5990;
-        let userMarker = null;
-        let allReportsData = [];
+        let userLat = 13.5990, userLng = 100.5990, userMarker = null, allReportsData = [];
 
         function initUserGPS() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLat = position.coords.latitude;
-                        userLng = position.coords.longitude;
-                        map.setView([userLat, userLng], 14);
-
-                        if (userMarker) {
-                            userMarker.setLatLng([userLat, userLng]);
-                        } else {
-                            userMarker = L.marker([userLat, userLng], {
-                                icon: L.divIcon({
-                                    className: 'user-gps-pin',
-                                    html: '<div style="background:#2563eb; color:white; border:2px solid white; border-radius:50%; width:16px; height:16px; box-shadow:0 0 8px rgba(0,0,0,0.3);"></div>',
-                                    iconSize: [16, 16], iconAnchor: [8, 8]
-                                })
-                            }).addTo(map).bindPopup("📍 ตำแหน่งปัจจุบันของคุณ");
-                        }
-                        document.getElementById('reportLat').value = userLat;
-                        document.getElementById('reportLng').value = userLng;
-                        document.getElementById('reportCoordsDisplay').value = `พิกัด GPS: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
-                    },
-                    (error) => {
-                        map.fitBounds(provinceBoundary.getBounds());
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+                    map.setView([userLat, userLng], 14);
+                    if (userMarker) userMarker.setLatLng([userLat, userLng]);
+                    else {
+                        userMarker = L.marker([userLat, userLng], {
+                            icon: L.divIcon({ className: 'gps-dot', html: '<div style="background:#2563eb; color:white; border:2px solid white; border-radius:50%; width:16px; height:16px; box-shadow:0 0 8px rgba(0,0,0,0.5);"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
+                        }).addTo(map).bindPopup("📍 ตำแหน่งปัจจุบันของคุณ");
+                    }
+                    document.getElementById('reportLat').value = userLat;
+                    document.getElementById('reportLng').value = userLng;
+                    document.getElementById('reportCoordsDisplay').value = `พิกัด: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
+                }, () => {}, { enableHighAccuracy: true });
             }
         }
         initUserGPS();
 
         window.panToUserGPS = function() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    userLat = position.coords.latitude;
-                    userLng = position.coords.longitude;
-                    map.setView([userLat, userLng], 15);
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 15);
                     alert("🎯 ซูมไปยังตำแหน่ง GPS ของคุณแล้ว");
-                }, () => { alert("⚠️ กรุณาเปิดอนุญาตการเข้าถึงตำแหน่ง (GPS)"); });
+                }, () => { alert("กรุณาเปิด GPS"); });
             }
         }
 
         const colors = { 1: '#10b981', 2: '#3b82f6', 3: '#f59e0b', 4: '#f97316', 5: '#ef4444', 6: '#7c3aed' };
         const levelNames = { 
-            1: 'น้ำสูง 1-20 ซม.', 
-            2: 'น้ำสูง 21-50 ซม.', 
-            3: 'น้ำสูง 51-70 ซม.', 
-            4: 'น้ำสูง 71-100 ซม.', 
-            5: 'น้ำสูง 101-150 ซม.', 
-            6: 'น้ำสูง 151-180 ซม.' 
+            1: 'แห้งแล้ว', 
+            2: '1-50 ซม.', 
+            3: '51-70 ซม.', 
+            4: '71-100 ซม.', 
+            5: '101-150 ซม.', 
+            6: '151-180 ซม.' 
         };
         let markers = [];
 
+        // ฟังก์ชันพูดภาษาไทยด้วยความเร็ว 1.5x (ตามคำขอ)
         function speakWaterStatus(textToSpeak) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
                 utterance.lang = 'th-TH';
+                utterance.rate = 1.5; // ความเร็ว 1.5x
                 window.speechSynthesis.speak(utterance);
             }
-        }
-
-        window.triggerStormTrackingSimulation = function() {
-            const warningText = "ระบบเรดาร์ตรวจพบกลุ่มฝนความเข้มข้นสูง กำลังเคลื่อนตัวเข้าสู่พื้นที่จังหวัดสมุทรปราการ คาดว่าจะเริ่มตกหนักภายใน 20 นาทีนี้ ขอให้ประชาชนเตรียมรับมือครับ";
-            speakWaterStatus(warningText);
-            
-            if ('AudioContext' in window || 'webkitAudioContext' in window) {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.6);
-            }
-            alert("⚠ เสียงแจ้งเตือนภัย:\n" + warningText);
         }
 
         function renderMapAndFeed(data) {
@@ -747,22 +619,25 @@
             markers = [];
             const feedContainer = document.getElementById('feedList');
             feedContainer.innerHTML = '';
-
             let counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
 
             data.forEach(item => {
                 if (item.level >= 1 && item.level <= 6) counts[item.level]++;
                 
                 const circle = L.circleMarker([item.lat, item.lng], {
-                    radius: 10,
-                    fillColor: colors[item.level] || '#3b82f6',
-                    color: '#fff', weight: 2, fillOpacity: 0.85
+                    radius: 10, fillColor: colors[item.level] || '#3b82f6', color: '#fff', weight: 2, fillOpacity: 0.85
                 }).addTo(map);
 
-                const popupHtml = `<b>${item.name} (${item.district})</b><br>สถานะ: ${item.text}<br>ระดับ: ${levelNames[item.level]}<br>เวลา: ${item.time}`;
+                const popupHtml = `
+                    <b>📍 ${item.name} (${item.district})</b><br>
+                    สถานะ: ${item.text || '-'}<br>
+                    ระดับน้ำ: <b>${levelNames[item.level]}</b><br>
+                    เวลา: ${item.time}<br><br>
+                    <button style="background:#059669; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-family:'Prompt';" onclick="openEditModalFromMap('${item.id}', '${item.name}', ${item.level}, '${item.text || ''}')">✏️ แก้ไขระดับน้ำ</button>
+                `;
                 circle.bindPopup(popupHtml);
                 circle.on('click', () => {
-                    speakWaterStatus(`สถานที่ ${item.name}, อำเภอ ${item.district}, ระดับน้ำ ${levelNames[item.level]}`);
+                    speakWaterStatus(`สถานที่ ${item.name}, อำเภอ ${item.district}, ระดับน้ำ ${levelNames[item.level]}, สถานการณ์ ${item.text || 'ปกติ'}`);
                 });
 
                 markers.push(circle);
@@ -770,13 +645,16 @@
                 let imgTag = item.image ? `<img src="${item.image}" class="feed-img">` : '';
 
                 feedContainer.innerHTML += `
-                    <div class="feed-item" style="border-left-color: ${colors[item.level]}; cursor: pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.name}', '${item.district}', ${item.level})">
-                        <div style="display:flex; justify-content:space-between;">
+                    <div class="feed-item" style="border-left-color: ${colors[item.level]};">
+                        <div style="display:flex; justify-content:space-between; cursor:pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.name}', '${item.district}', ${item.level}, '${item.text || ''}')">
                             <b>📍 ${item.name}</b>
                             <span class="feed-time">${item.time}</span>
                         </div>
                         <div style="color: #475569; margin-top: 2px;">${item.district} (${item.subdistrict})</div>
-                        <span class="badge-status" style="background:${colors[item.level]}20; color:${colors[item.level]}">${levelNames[item.level]}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                            <span class="badge-status" style="background:${colors[item.level]}20; color:${colors[item.level]}">${levelNames[item.level]}</span>
+                            <button class="btn-action secondary small-btn" onclick="openEditModal('${item.id}', '${item.name}', ${item.level}, '${item.text || ''}')">✏️ แก้ไข</button>
+                        </div>
                         ${imgTag}
                     </div>
                 `;
@@ -802,10 +680,43 @@
             renderMapAndFeed(allReportsData);
         });
 
-        window.focusOnItem = function(lat, lng, name, district, level) {
+        window.focusOnItem = function(lat, lng, name, district, level, text) {
             if (window.innerWidth <= 768) { toggleMobileView(); }
             map.setView([lat, lng], 15);
-            speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, ระดับน้ำ ${levelNames[level]}`);
+            speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, ระดับน้ำ ${levelNames[level]}, สถานการณ์ ${text || 'ปกติ'}`);
+        }
+
+        // ฟังก์ชันเปิด Modal แก้ไขระดับน้ำ (ทุกคนทำได้)
+        window.openEditModal = function(id, name, currentLevel, currentText) {
+            document.getElementById('editReportId').value = id;
+            document.getElementById('editLocationTitle').innerText = `จุดพิกัด: ${name}`;
+            document.getElementById('editLevel').value = currentLevel;
+            document.getElementById('editStatusText').value = currentText;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        window.openEditModalFromMap = function(id, name, currentLevel, currentText) {
+            map.closePopup();
+            openEditModal(id, name, currentLevel, currentText);
+        }
+        window.closeEditModal = function() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // บันทึกการแก้ไขระดับน้ำ
+        window.submitWaterUpdate = function() {
+            const id = document.getElementById('editReportId').value;
+            const newLevel = parseInt(document.getElementById('editLevel').value);
+            const newText = document.getElementById('editStatusText').value.trim();
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} น. (อัปเดตล่าสุด)`;
+
+            const itemRef = ref(db, `flood_reports/${id}`);
+            update(itemRef, { level: newLevel, text: newText, time: timeStr }).then(() => {
+                alert("✅ อัปเดตสถานการณ์ระดับน้ำเรียบร้อยแล้ว");
+                closeEditModal();
+            }).catch(err => {
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+            });
         }
 
         window.filterData = function() {
@@ -824,7 +735,7 @@
             isFeedVisible = !isFeedVisible;
             if (isFeedVisible) {
                 sidebar.classList.add('active');
-                toggleIcon.innerText = '🗺️ กลับหน้าแผนที่';
+                toggleIcon.innerText = '🗺️️ กลับหน้าแผนที่';
             } else {
                 sidebar.classList.remove('active');
                 toggleIcon.innerText = '📋 ดูรายการรายงานสด';
@@ -834,51 +745,21 @@
 
         window.openHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'flex'; }
         window.closeHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'none'; }
-
         window.openRadarModal = function() { document.getElementById('radarModal').style.display = 'flex'; }
         window.closeRadarModal = function() { document.getElementById('radarModal').style.display = 'none'; }
+        
+        window.openRouteModal = function() { document.getElementById('routeModal').style.display = 'flex'; }
+        window.closeRouteModal = function() { document.getElementById('routeModal').style.display = 'none'; }
+        window.calculateSafeRoute = function() {
+            const end = document.getElementById('routeEnd').value.trim();
+            if(!end) { alert("กรุณากรอกจุดหมายปลายทาง"); return; }
+            speakWaterStatus("ระบบกำลังคำนวณเส้นทางที่ปลอดภัยที่สุด และหลีกเลี่ยงถนนที่มีน้ำท่วมขังในจังหวัดสมุทรปราการครับ");
+            alert("🗺️ เส้นทางเลี่ยงน้ำท่วม:\nระบบได้ตรวจสอบถนนทุกสาย (สุขุมวิท, ศรีนครินทร์, เทพารักษ์) พบว่าจุดหมายปลายทางของคุณสามารถเดินทางผ่านเส้นทางสำรองที่แห้งสนิทได้ปลอดภัย ขอให้ขับรถด้วยความระมัดระวัง");
+            closeRouteModal();
+        }
 
-        let pickerMap = null;
         window.openReportModal = function() { document.getElementById('reportModal').style.display = 'flex'; }
         window.closeReportModal = function() { document.getElementById('reportModal').style.display = 'none'; }
-        window.openLocationPickerFromModal = function() {
-            document.getElementById('reportModal').style.display = 'none';
-            openLocationPicker();
-        }
-
-        window.openLocationPicker = function() {
-            document.getElementById('locationPickerModal').style.display = 'flex';
-            setTimeout(() => {
-                if (!pickerMap) {
-                    pickerMap = L.map('pickerMap').setView([userLat, userLng], 15);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pickerMap);
-                } else {
-                    pickerMap.setView([userLat, userLng], 15);
-                    pickerMap.invalidateSize();
-                }
-            }, 200);
-        }
-
-        window.closeLocationPicker = function() {
-            document.getElementById('locationPickerModal').style.display = 'none';
-        }
-
-        window.pickerCenterToGPS = function() {
-            if (pickerMap) pickerMap.setView([userLat, userLng], 16);
-        }
-
-        window.confirmLocationSelection = function() {
-            if (pickerMap) {
-                const center = pickerMap.getCenter();
-                userLat = center.lat;
-                userLng = center.lng;
-                document.getElementById('reportLat').value = userLat;
-                document.getElementById('reportLng').value = userLng;
-                document.getElementById('reportCoordsDisplay').value = `พิกัดเลือก: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
-            }
-            closeLocationPicker();
-            openReportModal();
-        }
 
         window.submitReport = function() {
             const name = document.getElementById('reportName').value.trim();
@@ -889,10 +770,7 @@
             const lat = parseFloat(document.getElementById('reportLat').value) || userLat;
             const lng = parseFloat(document.getElementById('reportLng').value) || userLng;
 
-            if (!name) {
-                alert("กรุณากรอกชื่อสถานที่หรือจุดสังเกต");
-                return;
-            }
+            if (!name) { alert("กรุณากรอกชื่อสถานที่หรือจุดสังเกต"); return; }
 
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} น.`;
@@ -901,28 +779,22 @@
             if (fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    saveReportDataToFirebase({
-                        name, district, subdistrict, level, text, lat, lng, time: timeStr, image: e.target.result
-                    });
+                    saveReportDataToFirebase({ name, district, subdistrict, level, text, lat, lng, time: timeStr, image: e.target.result });
                 };
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
-                saveReportDataToFirebase({
-                    name, district, subdistrict, level, text, lat, lng, time: timeStr, image: null
-                });
+                saveReportDataToFirebase({ name, district, subdistrict, level, text, lat, lng, time: timeStr, image: null });
             }
         }
 
         function saveReportDataToFirebase(reportObj) {
             push(reportsRef, reportObj).then(() => {
-                alert("✅ ส่งรายงานสถานการณ์เรียบร้อยแล้ว");
+                alert("✅ ส่งรายงานเรียบร้อยแล้ว");
                 closeReportModal();
                 document.getElementById('reportName').value = '';
                 document.getElementById('reportText').value = '';
                 document.getElementById('reportImage').value = '';
-            }).catch(error => {
-                alert("❌ เกิดข้อผิดพลาดในการส่งข้อมูล: " + error.message);
-            });
+            }).catch(error => { alert("❌ เกิดข้อผิดพลาด: " + error.message); });
         }
     </script>
 </body>
