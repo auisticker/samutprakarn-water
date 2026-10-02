@@ -197,29 +197,6 @@
         .level-badge span:last-child {
             font-weight: 600;
         }
-
-        /* ปุ่มเชื่อมต่อ Google Maps */
-        .map-link-btn {
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 12px;
-            background: #ffffff;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            border-radius: var(--radius);
-            font-family: 'Prompt', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: none;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-
-        .map-link-btn:hover {
-            background: #eff6ff;
-        }
     </style>
 </head>
 <body>
@@ -233,10 +210,10 @@
 
         <!-- เมนูเรดาร์พยากรณ์อากาศ -->
         <div class="card" style="padding: 15px;">
-            <a href="#radar" class="radar-btn" onclick="openRadarMenu()">
+            <button class="radar-btn" onclick="openRadarMenu()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 เรดาร์พยากรณ์อากาศฝน & แรงลม
-            </a>
+            </button>
         </div>
 
         <!-- พื้นที่ / ตำบล (เพิ่มแพรกษาใหม่, ลบ SKT) -->
@@ -273,9 +250,9 @@
             </div>
         </div>
 
-        <!-- เช็คระดับน้ำ & 6 ระดับตัวเลข -->
+        <!-- เช็คระดับน้ำ 6 ระดับ (รูปแบบเดิม) -->
         <div class="card">
-            <div class="card-title">ระดับน้ำอัจฉริยะ (Google Maps Data)</div>
+            <div class="card-title">ตรวจสอบระดับน้ำ</div>
             <div class="water-levels">
                 <div class="level-badge"><span>ระดับ 1</span><span>1 - 20 ซม.</span></div>
                 <div class="level-badge"><span>ระดับ 2</span><span>21 - 50 ซม.</span></div>
@@ -284,9 +261,6 @@
                 <div class="level-badge"><span>ระดับ 5</span><span>101 - 150 ซม.</span></div>
                 <div class="level-badge"><span>ระดับ 6</span><span>151 - 180 ซม.</span></div>
             </div>
-            <a href="https://maps.google.com" target="_blank" class="map-link-btn">
-                ดูแผนที่ระดับน้ำผ่าน Google Maps
-            </a>
         </div>
     </div>
 
