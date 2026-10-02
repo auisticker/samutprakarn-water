@@ -261,11 +261,28 @@
             white-space: nowrap;
         }
 
-        #locationPickerModal .modal-content {
-            width: 95%; max-width: 500px; height: 75vh; display: flex; flex-direction: column; padding: 12px;
+        .radar-link-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        #pickerMap { flex-grow: 1; width: 100%; border-radius: 8px; margin-bottom: 8px; position: relative; }
-        .map-center-pin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); font-size: 2rem; z-index: 2000; pointer-events: none; }
+        .radar-link-info b { display: block; color: var(--primary); font-size: 0.85rem; }
+        .radar-link-info span { color: #64748b; font-size: 0.75rem; }
+        .radar-external-btn {
+            background: #0ea5e9;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
 
         .mobile-view-toggle { display: none; }
 
@@ -319,9 +336,9 @@
 
     <div class="control-bar">
         <button class="btn-action report-btn" onclick="openReportModal()">📢 แจ้งน้ำท่วม</button>
-        <button class="btn-action route-btn" onclick="openRouteModal()">🗺️ ค้นหาเส้นทางเลี่ยงน้ำ</button>
-        <button class="btn-action radar-btn" onclick="openRadarModal()">📡 เรดาร์ฝน</button>
-        <button class="btn-action secondary" onclick="panToUserGPS()">🎯 ตำแหน่งฉัน</button>
+        <button class="btn-action route-btn" onclick="openRouteModal()">🗺️ เส้นทางเลี่ยงน้ำ</button>
+        <button class="btn-action radar-btn" onclick="toggleRadarOverlay()">📡 เปิด/ปิดเรดาร์ฝนทับแผนที่</button>
+        <button class="btn-action secondary" onclick="openRadarModal()">🔍 เรดาร์ (เว็บทางการ)</button>
     </div>
 
     <div class="filters-row">
@@ -368,7 +385,7 @@
                 <input type="text" id="routeEnd" placeholder="เช่น นิคมอุตสาหกรรมบางปู, BTS สำโรง...">
             </div>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 12px;">
-                <b>🛡️ ระบบอัจฉริยะ:</b> ทำการเช็กพิกัดถนนสุขุมวิท, ถนนศรีนครินทร์, ถนนเทพารักษ์, ถนนตำหรุ-บางพลี และซอยย่อย พร้อมคำนวณเส้นทางสำรองที่แห้งสนิทให้ทันที
+                <b>🛡️ ระบบอัจฉริยะ:</b> ตรวจสอบพิกัดถนนสุขุมวิท, ศรีนครินทร์, เทพารักษ์ และซอยย่อย พร้อมแนะนำทางเลี่ยงที่แห้งสนิท
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-action route-btn" onclick="calculateSafeRoute()">🚗 นำทางเลี่ยงน้ำท่วม</button>
@@ -405,6 +422,23 @@
         </div>
     </div>
 
+    <!-- Modal เรดาร์เว็บทางการ -->
+    <div id="radarModal" class="modal">
+        <div class="modal-content" style="max-width: 550px;">
+            <h3 style="margin-top:0; color: var(--primary);">📡 ศูนย์เรดาร์ตรวจอากาศ (เว็บทางการ)</h3>
+            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:12px;">เลือกเปิดดูภาพเรดาร์กลุ่มฝนจากหน่วยงานหลัก</p>
+            <div class="radar-link-card">
+                <div class="radar-link-info"><b>เรดาร์สำนักระบายน้ำ กทม.</b><span>ครอบคลุมสมุทรปราการแบบเรียลไทม์</span></div>
+                <a href="https://weather.bangkok.go.th/radar/" target="_blank" class="radar-external-btn">🔍 เปิดเรดาร์ กทม.</a>
+            </div>
+            <div class="radar-link-card">
+                <div class="radar-link-info"><b>เรดาร์กรมอุตุนิยมวิทยา</b><span>ตรวจสอบทิศทางกลุ่มฝนลูกใหญ่</span></div>
+                <a href="https://www.tmd.go.th/radar" target="_blank" class="radar-external-btn">🔍 เปิดเรดาร์กรมอุตุฯ</a>
+            </div>
+            <button class="btn-action secondary" style="width: 100%; margin-top: 10px;" onclick="closeRadarModal()">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
     <!-- Modal เบอร์โทรฉุกเฉิน -->
     <div id="hotlineModal" class="modal">
         <div class="modal-content">
@@ -421,20 +455,7 @@
                 <div class="hotline-info"><b>สถาบันการแพทย์ฉุกเฉิน</b><span>กู้ชีพ 1669</span></div>
                 <a href="tel:1669" class="hotline-btn">📞 1669</a>
             </div>
-            <div style="margin-top: 16px;">
-                <button class="btn-action secondary" style="width: 100%;" onclick="closeHotlineModal()">ปิดหน้าต่าง</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal เรดาร์ฝน -->
-    <div id="radarModal" class="modal">
-        <div class="modal-content" style="max-width: 550px; height: 80vh; display: flex; flex-direction: column;">
-            <h3 style="margin-top:0; color: var(--primary);">📡 เรดาร์ตรวจอากาศ (ความละเอียดสูง)</h3>
-            <div style="flex-grow: 1; height: 350px; background: #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
-                <iframe src="https://weather.bangkok.go.th/radar/" style="width:100%; height:100%; border:none;" title="Radar"></iframe>
-            </div>
-            <button class="btn-action secondary" style="width: 100%;" onclick="closeRadarModal()">ปิดหน้าต่าง</button>
+            <button class="btn-action secondary" style="width: 100%; margin-top: 10px;" onclick="closeHotlineModal()">ปิดหน้าต่าง</button>
         </div>
     </div>
 
@@ -452,9 +473,9 @@
                     <option value="อำเภอเมืองสมุทรปราการ">อำเภอเมืองสมุทรปราการ</option>
                     <option value="อำเภอพระประแดง">อำเภอพระประแดง</option>
                     <option value="อำเภอพระสมุทรเจดีย์">อำเภอพระสมุทรเจดีย์</option>
-                    <option value="อำเภอบางพลี">อำเภอบางพลี</option>
-                    <option value="อำเภอบางบ่อ">อำเภอบางบ่อ</option>
-                    <option value="อำเภอบางเสาธง">อำเภอบางเสาธง</option>
+                    <option value="อำเภอบางพลี">อ.บางพลี</option>
+                    <option value="อำเภอบางบ่อ">อ.บางบ่อ</option>
+                    <option value="อำเภอบางเสาธง">อ.บางเสาธง</option>
                 </select>
             </div>
             <div class="form-group">
@@ -556,6 +577,25 @@
         const map = L.map('map').setView([13.599, 100.599], 11);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
+        // เพิ่มเลเยอร์เรดาร์กลุ่มฝน (RainViewer Radar Tile Overlay) ซ้อนทับบนแผนที่
+        let radarOverlay = L.tileLayer('https://tile.rainviewer.com/v2/radar/nowcast_120/256/{z}/{x}/{y}/2/1_1.png', {
+            attribution: 'Radar data &copy; RainViewer',
+            opacity: 0.65,
+            maxZoom: 19
+        });
+        let isRadarOn = false;
+        window.toggleRadarOverlay = function() {
+            if (isRadarOn) {
+                map.removeLayer(radarOverlay);
+                isRadarOn = false;
+                alert("📡 ปิดเรดาร์กลุ่มฝนบนแผนเรียบร้อยแล้ว");
+            } else {
+                radarOverlay.addTo(map);
+                isRadarOn = true;
+                alert("📡 เปิดเรดาร์กลุ่มฝนซ้อนทับบนแผนที่แล้ว คุณจะเห็นกลุ่มฝนและทิศทางพายุสดๆ");
+            }
+        };
+
         const samutPrakanBoundaryCoords = [
             [13.680, 100.520], [13.670, 100.600], [13.640, 100.750],
             [13.580, 100.860], [13.500, 100.820], [13.520, 100.580], [13.600, 100.500]
@@ -603,7 +643,7 @@
         };
         let markers = [];
 
-        // ฟังก์ชันพูดภาษาไทยด้วยความเร็ว 1.5x (ตามคำขอ)
+        // ฟังก์ชันพูดภาษาไทยด้วยความเร็ว 1.5x
         function speakWaterStatus(textToSpeak) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -686,7 +726,6 @@
             speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, ระดับน้ำ ${levelNames[level]}, สถานการณ์ ${text || 'ปกติ'}`);
         }
 
-        // ฟังก์ชันเปิด Modal แก้ไขระดับน้ำ (ทุกคนทำได้)
         window.openEditModal = function(id, name, currentLevel, currentText) {
             document.getElementById('editReportId').value = id;
             document.getElementById('editLocationTitle').innerText = `จุดพิกัด: ${name}`;
@@ -702,7 +741,6 @@
             document.getElementById('editModal').style.display = 'none';
         }
 
-        // บันทึกการแก้ไขระดับน้ำ
         window.submitWaterUpdate = function() {
             const id = document.getElementById('editReportId').value;
             const newLevel = parseInt(document.getElementById('editLevel').value);
@@ -735,7 +773,7 @@
             isFeedVisible = !isFeedVisible;
             if (isFeedVisible) {
                 sidebar.classList.add('active');
-                toggleIcon.innerText = '🗺️️ กลับหน้าแผนที่';
+                toggleIcon.innerText = '🗺 กลับหน้าแผนที่';
             } else {
                 sidebar.classList.remove('active');
                 toggleIcon.innerText = '📋 ดูรายการรายงานสด';
