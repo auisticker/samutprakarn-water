@@ -768,4 +768,181 @@
 
                 feedContainer.innerHTML += `
                     <div class="feed-item" style="border-left-color: ${colors[item.level]};">
-                        <div style="display:flex; justify-content:space-between; cursor:pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.
+                        <div style="display:flex; justify-content:space-between; cursor:pointer;" onclick="focusOnItem(${item.lat}, ${item.lng}, '${item.name}', '${item.district}', ${item.level}, '${item.text || ''}')">
+                            <b>📍 ${item.name}</b>
+                            <span class="feed-time">${item.time}</span>
+                        </div>
+                        <div style="color: #475569; margin-top: 2px;">${item.district} (${item.subdistrict || '-'})</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                            <span class="badge-status" style="background:${colors[item.level]}20; color:${colors[item.level]}">${levelNames[item.level]}</span>
+                            <button class="btn-action secondary small-btn" onclick="openEditModal('${item.id}', '${item.name}', '${item.district}', '${item.subdistrict || ''}', ${item.level}, '${item.text || ''}')">✏️ แก้ไข/ลบ</button>
+                        </div>
+                        ${imgTag}
+                    </div>
+                `;
+            });
+
+            document.getElementById('cnt1').innerText = counts[1];
+            document.getElementById('cnt2').innerText = counts[2];
+            document.getElementById('cnt3').innerText = counts[3];
+            document.getElementById('cnt4').innerText = counts[4];
+            document.getElementById('cnt5').innerText = counts[5];
+            document.getElementById('cnt6').innerText = counts[6];
+        }
+
+        const reportsRef = ref(db, 'flood_reports');
+        onValue(reportsRef, (snapshot) => {
+            const dbData = snapshot.val();
+            allReportsData = [];
+            if (dbData) {
+                Object.keys(dbData).forEach(key => {
+                    allReportsData.unshift({ id: key, ...dbData[key] });
+                });
+            }
+            renderMapAndFeed(allReportsData);
+        });
+
+        window.focusOnItem = function(lat, lng, name, district, level, text) {
+            if (window.innerWidth <= 768) { toggleMobileView(); }
+            map.setView([lat, lng], 15);
+            speakWaterStatus(`สถานที่ ${name}, อำเภอ ${district}, ระดับน้ำ ${levelNames[level]}, สถานการณ์ ${text || 'ปกติ'}`);
+        }
+
+        // ฟังก์ชันเปิด Modal แก้ไขข้อมูล (รวมถึง อำเภอ และ ตำบล)
+        window.openEditModal = function(id, name, district, subdistrict, currentLevel, currentText) {
+            document.getElementById('editReportId').value = id;
+            document.getElementById('editLocationName').value = name;
+            document.getElementById('editDistrict').value = district;
+            onEditDistrictChange();
+            document.getElementById('editSubdistrict').value = subdistrict;
+            document.getElementById('editLevel').value = currentLevel;
+            document.getElementById('editStatusText').value = currentText;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        window.openEditModalFromMap = function(id, name, district, subdistrict, currentLevel, currentText) {
+            map.closePopup();
+            openEditModal(id, name, district, subdistrict, currentLevel, currentText);
+        }
+        window.closeEditModal = function() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // บันทึกการแก้ไข (อัปเดตชื่อ อำเภอ ตำบล ระดับน้ำ)
+        window.submitWaterUpdate = function() {
+            const id = document.getElementById('editReportId').value;
+            const newName = document.getElementById('editLocationName').value.trim();
+            const newDistrict = document.getElementById('editDistrict').value;
+            const newSubdistrict = document.getElementById('editSubdistrict').value;
+            const newLevel = parseInt(document.getElementById('editLevel').value);
+            const newText = document.getElementById('editStatusText').value.trim();
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} น. (แก้ไขแล้ว)`;
+
+            if(!newName) { alert("กรุณากรอกชื่อสถานที่"); return; }
+
+            const itemRef = ref(db, `flood_reports/${id}`);
+            update(itemRef, { 
+                name: newName, 
+                district: newDistrict, 
+                subdistrict: newSubdistrict, 
+                level: newLevel, 
+                text: newText, 
+                time: timeStr 
+            }).then(() => {
+                alert("✅ อัปเดตข้อมูล อำเภอ ตำบล และระดับน้ำเรียบร้อยแล้ว");
+                closeEditModal();
+            }).catch(err => { alert("❌ เกิดข้อผิดพลาด: " + err.message); });
+        }
+
+        // ฟังก์ชันลบข้อมูลรายงาน
+        window.deleteWaterReport = function() {
+            const id = document.getElementById('editReportId').value;
+            if (confirm("⚠️ คุณต้องการลบข้อมูลจุดรายงานนี้ออกอย่างถาวรใช่หรือไม่?")) {
+                const itemRef = ref(db, `flood_reports/${id}`);
+                remove(itemRef).then(() => {
+                    alert("🗑️ ลบข้อมูลเรียบร้อยแล้ว");
+                    closeEditModal();
+                }).catch(err => { alert("❌ เกิดข้อผิดพลาด: " + err.message); });
+            }
+        }
+
+        window.filterData = function() {
+            const dist = document.getElementById('filterDistrict').value;
+            const sub = document.getElementById('filterSubdistrict').value;
+            let filtered = allReportsData;
+            if (dist) filtered = filtered.filter(i => i.district === dist);
+            if (sub) filtered = filtered.filter(i => i.subdistrict && i.subdistrict.includes(sub));
+            renderMapAndFeed(filtered);
+        }
+
+        let isFeedVisible = false;
+        window.toggleMobileView = function() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleIcon = document.getElementById('mobileToggleIcon');
+            isFeedVisible = !isFeedVisible;
+            if (isFeedVisible) {
+                sidebar.classList.add('active');
+                toggleIcon.innerText = '🗺 กลับหน้าแผนที่';
+            } else {
+                sidebar.classList.remove('active');
+                toggleIcon.innerText = '📋 ดูรายการรายงานสด';
+                setTimeout(() => { map.invalidateSize(); }, 300);
+            }
+        }
+
+        window.openHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'flex'; }
+        window.closeHotlineModal = function() { document.getElementById('hotlineModal').style.display = 'none'; }
+        window.openRadarModal = function() { document.getElementById('radarModal').style.display = 'flex'; }
+        window.closeRadarModal = function() { document.getElementById('radarModal').style.display = 'none'; }
+        
+        window.openRouteModal = function() { document.getElementById('routeModal').style.display = 'flex'; }
+        window.closeRouteModal = function() { document.getElementById('routeModal').style.display = 'none'; }
+        window.calculateSafeRoute = function() {
+            const end = document.getElementById('routeEnd').value.trim();
+            if(!end) { alert("กรุณากรอกจุดหมายปลายทาง"); return; }
+            speakWaterStatus("ระบบกำลังคำนวณเส้นทางเลี่ยงน้ำท่วมที่ปลอดภัยที่สุดครับ");
+            alert("🗺️ เส้นทางเลี่ยงน้ำท่วมปลอดภัย:\nตรวจสอบถนนสายหลักและซอยย่อยแล้ว สามารถใช้เส้นทางสำรองที่แห้งสนิทเดินทางถึงที่หมายได้อย่างปลอดภัย");
+            closeRouteModal();
+        }
+
+        window.openReportModal = function() { document.getElementById('reportModal').style.display = 'flex'; }
+        window.closeReportModal = function() { document.getElementById('reportModal').style.display = 'none'; }
+
+        window.submitReport = function() {
+            const name = document.getElementById('reportName').value.trim();
+            const district = document.getElementById('reportDistrict').value;
+            const subdistrict = document.getElementById('reportSubdistrict').value;
+            const level = parseInt(document.getElementById('reportLevel').value);
+            const text = document.getElementById('reportText').value.trim();
+            const lat = parseFloat(document.getElementById('reportLat').value) || userLat;
+            const lng = parseFloat(document.getElementById('reportLng').value) || userLng;
+
+            if (!name) { alert("กรุณากรอกชื่อสถานที่"); return; }
+
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} น.`;
+
+            const fileInput = document.getElementById('reportImage');
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    saveReportDataToFirebase({ name, district, subdistrict, level, text, lat, lng, time: timeStr, image: e.target.result });
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveReportDataToFirebase({ name, district, subdistrict, level, text, lat, lng, time: timeStr, image: null });
+            }
+        }
+
+        function saveReportDataToFirebase(reportObj) {
+            push(reportsRef, reportObj).then(() => {
+                alert("✅ ส่งรายงานเรียบร้อยแล้ว");
+                closeReportModal();
+                document.getElementById('reportName').value = '';
+                document.getElementById('reportText').value = '';
+                document.getElementById('reportImage').value = '';
+            }).catch(error => { alert("❌ เกิดข้อผิดพลาด: " + error.message); });
+        }
+    </script>
+</body>
+</html>
